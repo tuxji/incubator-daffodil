@@ -186,6 +186,11 @@ object DFDL {
     def newXMLReaderInstance: DaffodilXMLReader
 
     /**
+     * Generates code in memory or to a temporary file, returns an object which contains any diagnostics.
+     */
+    def generateCode(): CodeGeneratorState
+
+    /**
      * Unparses (that is, serializes) data to the output, returns an object which contains any diagnostics.
      */
     def unparse(input: InfosetInputter, output: DFDL.Output): UnparseResult
@@ -200,6 +205,10 @@ object DFDL {
     def parse(is: java.io.InputStream): Unit
     def parse(in: InputSourceDataInputStream): Unit
     def parse(ab: Array[Byte]): Unit
+  }
+
+  trait CodeGeneratorState {
+    // Will be extended in runtime2 package
   }
 
   trait ParseResult extends Result with WithDiagnostics {
