@@ -145,7 +145,7 @@ object DFDL {
     def onPath(xpath: String): DataProcessor
   }
 
-  trait DataProcessor extends WithDiagnostics {
+  trait DataProcessorBase extends WithDiagnostics {
 
     /**
      * Returns a data processor with all the same state, but the validation mode changed to that of the argument.
@@ -179,7 +179,9 @@ object DFDL {
     def setTunable(tunable: String, value: String): Unit
     @deprecated("Use withTunables.", "2.6.0")
     def setTunables(tunables: Map[String,String]): Unit
+}
 
+  trait DataProcessor extends DataProcessorBase {
     /**
      * Creates a new instance of XMLReader for SAX Parsing/Unparsing
      */
