@@ -15,7 +15,7 @@ walkInfosetNode(const VisitEventHandler *handler, const InfosetBase *infoNode)
     }
 
     // Walk the node's children recursively
-    const size_t      count = infoNode->erd->count_children;
+    const size_t      count = infoNode->erd->numChildren;
     const ERD **const childrenERDs = infoNode->erd->childrenERDs;
     const ptrdiff_t * offsets = infoNode->erd->offsets;
 
@@ -36,7 +36,7 @@ walkInfosetNode(const VisitEventHandler *handler, const InfosetBase *infoNode)
         case COMPLEX:
             error_msg = walkInfosetNode(handler, childNode);
             break;
-        case PRIMITIVE_INT:
+        case PRIMITIVE_INT32:
             error_msg = handler->visitInt32Elem(handler, childERD, intLocation);
             break;
         }

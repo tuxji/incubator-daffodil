@@ -25,23 +25,19 @@ class ElementParserGenerator(context: ElementBase, contentParserGenerator: Parse
 
     if (context.isSimpleType) {
       cgState.addSimpleTypeERD(context) // ERD static initializer
-      contentParserGenerator.generateCode(cgState)
+      contentParserGenerator.generateCode(cgState) // initSelf, parseSelf, unparseSelf
     } else {
       cgState.pushComplexElement(context)
       context.elementChildren.foreach { child =>
-        if (child.isSimpleType) {
-          cgState.addFieldDeclaration(cgState.toPrimitive(child.optPrimType.get, context), child.name)
-          child.enclosedElement.generateCode(cgState)
-        } else {
-          // add a child struct, union, maybe array element inside parent element
-          cgState.addFieldDeclaration(cgState.toComplexType(child), child.name)
+        if (!child.isSimpleType) {
           cgState.addComplexTypeStatements(child) // recursive calls to parse, unparse, init
           cgState.addComputations(child) // offset, ERD computations
-          child.enclosedElement.generateCode(cgState)
         }
+        cgState.addFieldDeclaration(context, child) // struct member for child
+        child.enclosedElement.generateCode(cgState) // generate children too
       }
       cgState.addStruct(context) // struct definition
-      cgState.addImplementation(context) // parse_self, unparse_self, init_self
+      cgState.addImplementation(context) // initSelf, parseSelf, unparseSelf
       cgState.addComplexTypeERD(context) // ERD static initializer
       cgState.popComplexElement(context)
     }

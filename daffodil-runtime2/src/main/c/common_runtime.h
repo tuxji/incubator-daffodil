@@ -5,6 +5,68 @@
 #include <stdint.h> // for int32_t
 #include <stdio.h>  // for FILE, size_t
 
+// Prototypes needed for compilation
+
+typedef struct ElementRuntimeData ERD;
+typedef struct InfosetBase        InfosetBase;
+typedef struct PState             PState;
+typedef struct UState             UState;
+typedef struct VisitEventHandler  VisitEventHandler;
+
+typedef void (*ERDInitSelf)(InfosetBase *infoNode);
+typedef const char *(*ERDParseSelf)(InfosetBase * infoNode,
+                                    const PState *pstate);
+typedef const char *(*ERDUnparseSelf)(const InfosetBase *infoNode,
+                                      const UState *     ustate);
+
+typedef const char *(*VisitStartDocument)(const VisitEventHandler *handler);
+typedef const char *(*VisitEndDocument)(const VisitEventHandler *handler);
+typedef const char *(*VisitStartComplex)(const VisitEventHandler *handler,
+                                         const InfosetBase *      base);
+typedef const char *(*VisitEndComplex)(const VisitEventHandler *handler,
+                                       const InfosetBase *      base);
+typedef const char *(*VisitInt32Elem)(const VisitEventHandler *handler,
+                                      const ERD *erd, const int32_t *location);
+
+// NamedQName - name of an infoset element
+
+typedef struct NamedQName
+{
+    char *name;  // element name (including prefix if any)
+    char *xmlns; // xmlns attribute name (including prefix if any)
+    char *ns;    // xmlns attribute value (a namespace URI)
+} NamedQName;
+
+// TypeCode - type of an infoset element
+
+enum TypeCode
+{
+    COMPLEX,
+    PRIMITIVE_INT32
+};
+
+// ERD - element runtime data needed to parse/unparse objects
+
+typedef struct ElementRuntimeData
+{
+    const NamedQName    namedQName;
+    const enum TypeCode typeCode;
+    const size_t        numChildren;
+    const ptrdiff_t *   offsets;
+    const ERD **        childrenERDs;
+
+    const ERDInitSelf    initSelf;
+    const ERDParseSelf   parseSelf;
+    const ERDUnparseSelf unparseSelf;
+} ERD;
+
+// InfosetBase - representation of an infoset element
+
+typedef struct InfosetBase
+{
+    const ERD *erd;
+} InfosetBase;
+
 // PState - parser state while parsing input
 
 typedef struct PState
@@ -19,61 +81,7 @@ typedef struct UState
     FILE *stream; // output to write to
 } UState;
 
-// GlobalQName - name of an infoset element
-
-typedef struct GlobalQName
-{
-    char *name;
-} GlobalQName;
-
-// TypeCode - type of an infoset element
-
-enum TypeCode
-{
-    COMPLEX,
-    PRIMITIVE_INT
-};
-
-// ERD - element runtime data needed to parse/unparse objects
-
-typedef struct ElementRuntimeData ERD;
-typedef struct InfosetBase        InfosetBase;
-typedef void (*Init_Self)(InfosetBase *infoNode);
-typedef const char *(*Parse_Self)(InfosetBase *infoNode, const PState *pstate);
-typedef const char *(*Unparse_Self)(const InfosetBase *infoNode,
-                                    const UState *     ustate);
-
-typedef struct ElementRuntimeData
-{
-    const GlobalQName   namedQName;
-    const enum TypeCode typeCode;
-    const size_t        count_children;
-    const ptrdiff_t *   offsets;
-    const ERD **        childrenERDs;
-
-    const Init_Self    initSelf;
-    const Parse_Self   parseSelf;
-    const Unparse_Self unparseSelf;
-} ERD;
-
-// InfosetBase - representation of an infoset element
-
-typedef struct InfosetBase
-{
-    const ERD *erd;
-} InfosetBase;
-
 // VisitEventHandler - methods to be called when walking an infoset
-
-typedef struct VisitEventHandler VisitEventHandler;
-typedef const char *(*VisitStartDocument)(const VisitEventHandler *handler);
-typedef const char *(*VisitEndDocument)(const VisitEventHandler *handler);
-typedef const char *(*VisitStartComplex)(const VisitEventHandler *handler,
-                                         const InfosetBase *      base);
-typedef const char *(*VisitEndComplex)(const VisitEventHandler *handler,
-                                       const InfosetBase *      base);
-typedef const char *(*VisitInt32Elem)(const VisitEventHandler *handler,
-                                      const ERD *erd, const int32_t *location);
 
 typedef struct VisitEventHandler
 {

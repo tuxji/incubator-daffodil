@@ -1,1 +1,2 @@
-<?xml version="1.0" encoding="utf-8"?><C1><e1>1</e1><C2><e2>2</e2><e3>3</e3></C2></C1>
+<?xml version="1.0" encoding="utf-8"?><ex:c1
+xmlns:ex="http://example.com"><ex:e1>1</ex:e1><ex:c2><ex:e2>2</ex:e2><ex:e3>3</ex:e3></ex:c2></ex:c1>

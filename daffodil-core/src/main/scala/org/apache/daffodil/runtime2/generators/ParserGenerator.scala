@@ -48,19 +48,19 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
     val parserStatements = structs.top.parserStatements.mkString("\n")
     val unparserStatements = structs.top.unparserStatements.mkString("\n")
     val prototypeFunctions =
-      s"""static void        ${C}_init_self($C *instance);
-         |static const char *${C}_parse_self($C *instance, const PState *pstate);
-         |static const char *${C}_unparse_self(const $C *instance, const UState *ustate);""".stripMargin
+      s"""static void        ${C}_initSelf($C *instance);
+         |static const char *${C}_parseSelf($C *instance, const PState *pstate);
+         |static const char *${C}_unparseSelf(const $C *instance, const UState *ustate);""".stripMargin
     prototypes += prototypeFunctions
     val functions =
       s"""static void
-         |${C}_init_self($C *instance)
+         |${C}_initSelf($C *instance)
          |{
          |$initStatements
          |}
          |
          |static const char *
-         |${C}_parse_self($C *instance, const PState *pstate)
+         |${C}_parseSelf($C *instance, const PState *pstate)
          |{
          |    const char *error_msg = NULL;
          |$parserStatements
@@ -68,7 +68,7 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
          |}
          |
          |static const char *
-         |${C}_unparse_self(const $C *instance, const UState *ustate)
+         |${C}_unparseSelf(const $C *instance, const UState *ustate)
          |{
          |    const char *error_msg = NULL;
          |$unparserStatements
@@ -78,11 +78,27 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
     finalImplementation += functions
   }
 
+  private def defineQNameInit(context: ElementBase): String = {
+    val qname = context.namedQName.toQNameString
+    val xmlns = if (context.namedQName.prefix.isDefined) s"xmlns:${context.namedQName.prefix.get}" else "xmlns"
+    val ns = context.namedQName.namespace.toStringOrNullIfNoNS
+    val qnameInit = if (ns == null)
+      s"""    {"$qname"},          // namedQName.name"""
+    else
+      s"""    {
+         |        "$qname",              // namedQName.name
+         |        "$xmlns",           // namedQName.xmlns
+         |        "$ns", // namedQName.ns
+         |    },""".stripMargin
+    qnameInit
+  }
+
   def addComplexTypeERD(context: ElementBase): Unit = {
     val C = context.namedQName.local
     val count = structs.top.declarations.length
     val offsetComputations = structs.top.offsetComputations.mkString(",\n")
     val erdComputations = structs.top.erdComputations.mkString(",\n")
+    val qnameInit = defineQNameInit(context)
     val complexERD =
       s"""static const $C ${C}_compute_ERD_offsets;
          |
@@ -94,15 +110,15 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
          |$erdComputations
          |};
          |
-         |static const ERD ${C}ERD = {
-         |    {"$C"},                         // namedQName
-         |    COMPLEX,                        // typeCode
-         |    $count,                              // count_children
-         |    ${C}_offsets,                     // offsets
-         |    ${C}_childrenERDs,                // childrenERDs
-         |    (Init_Self)&${C}_init_self,       // initSelf
-         |    (Parse_Self)&${C}_parse_self,     // parseSelf
-         |    (Unparse_Self)&${C}_unparse_self, // unparseSelf
+         |static const ERD ${C}_ERD = {
+         |$qnameInit
+         |    COMPLEX,                         // typeCode
+         |    $count,                               // numChildren
+         |    ${C}_offsets,                      // offsets
+         |    ${C}_childrenERDs,                 // childrenERDs
+         |    (ERDInitSelf)&${C}_initSelf,       // initSelf
+         |    (ERDParseSelf)&${C}_parseSelf,     // parseSelf
+         |    (ERDUnparseSelf)&${C}_unparseSelf, // unparseSelf
          |};
          |""".stripMargin
     erds += complexERD
@@ -119,7 +135,7 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
          |} $C;
          |""".stripMargin
     finalStructs += struct
-    val initStatement = s"    instance->_base.erd = &${C}ERD;"
+    val initStatement = s"    instance->_base.erd = &${C}_ERD;"
     structs.top.initStatements += initStatement
   }
 
@@ -132,16 +148,16 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
   def addComplexTypeStatements(child: ElementBase): Unit = {
     val C = child.namedQName.local
     val e = child.name
-    val initStatement = s"    ${C}_init_self(&instance->$e);"
+    val initStatement = s"    ${C}_initSelf(&instance->$e);"
     val parseStatement =
       s"""    if (error_msg == NULL)
          |    {
-         |        error_msg = ${C}_parse_self(&instance->$e, pstate);
+         |        error_msg = ${C}_parseSelf(&instance->$e, pstate);
          |    }""".stripMargin
     val unparseStatement =
       s"""    if (error_msg == NULL)
          |    {
-         |        error_msg = ${C}_unparse_self(&instance->$e, ustate);
+         |        error_msg = ${C}_unparseSelf(&instance->$e, ustate);
          |    }""".stripMargin
     structs.top.initStatements += initStatement
     structs.top.parserStatements += parseStatement
@@ -159,21 +175,22 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
 
   def addSimpleTypeERD(context: ElementBase): Unit = {
     val e = context.namedQName.local
+    val qnameInit = defineQNameInit(context)
     val typeCode = context.optPrimType.get match {
-      case PrimType.Int => "PRIMITIVE_INT"
+      case PrimType.Int => "PRIMITIVE_INT32"
       case PrimType.String => "PRIMITIVE_STRING"
       case p: PrimType => context.SDE("PrimType %s not supported yet.", p.toString)
     }
     val erd =
-      s"""static const ERD ${e}ERD = {
-         |    {"$e"},        // namedQName
+      s"""static const ERD ${e}_ERD = {
+         |$qnameInit
          |    $typeCode, // typeCode
-         |    0,             // count_children
-         |    NULL,          // offsets
-         |    NULL,          // childrenERDs
-         |    NULL,          // initSelf
-         |    NULL,          // parseSelf
-         |    NULL,          // unparseSelf
+         |    0,               // numChildren
+         |    NULL,            // offsets
+         |    NULL,            // childrenERDs
+         |    NULL,            // initSelf
+         |    NULL,            // parseSelf
+         |    NULL,            // unparseSelf
          |};
          |""".stripMargin
     erds += erd
@@ -184,27 +201,23 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
     val C = structs.top.C
     val e = child.namedQName.local
     val offsetComputation = s"    (char *)&${C}_compute_ERD_offsets.$e - (char *)&${C}_compute_ERD_offsets"
-    val erdComputation = s"    &${e}ERD"
+    val erdComputation = s"    &${e}_ERD"
     structs.top.offsetComputations += offsetComputation
     structs.top.erdComputations += erdComputation
   }
 
-  def toPrimitive(primType: NodeInfo.PrimType, context: ThrowsSDE): String = {
-    import NodeInfo.PrimType
-    primType match {
-      case PrimType.Long => "int64_t"
-      case PrimType.Int => "int32_t"
-      case _ => context.SDE("Unsupported primitive type: " + primType)
+  def addFieldDeclaration(context: ThrowsSDE, child: ElementBase): Unit = {
+    val definition = if (child.isSimpleType) {
+      import NodeInfo.PrimType
+      child.optPrimType.get match {
+        case PrimType.Long => "int64_t    "
+        case PrimType.Int => "int32_t    "
+        case x => context.SDE("Unsupported primitive type: " + x)
+      }
+    } else {
+      child.namedQName.local + "         "
     }
-  }
-
-  def toComplexType(child: ElementBase): String = {
-    val definition = child.namedQName.local
-    definition
-  }
-
-  def addFieldDeclaration(definition: String, name: String): Unit = {
-    structs.top.declarations += s"    $definition $name;"
+    structs.top.declarations += s"    $definition ${child.name};"
   }
 
   def viewCode: String = code
@@ -242,7 +255,7 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
          |#include <stdio.h>  // for NULL, fread, fwrite, size_t, feof, ferror, FILE
          |#include <string.h> // for strerror
          |
-         |// Function prototypes to allow compilation
+         |// Prototypes needed for compilation
          |
          |$prototypes
          |
@@ -256,7 +269,7 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
          |{
          |    static $rootElementName    instance;
          |    InfosetBase *root = &instance._base;
-         |    ${rootElementName}ERD.initSelf(root);
+         |    ${rootElementName}_ERD.initSelf(root);
          |    return root;
          |}
          |

@@ -47,7 +47,13 @@ xmlStartComplex(XMLWriter *writer, const InfosetBase *base)
     {
         mxml_node_t *parent = stack_top(&writer->stack);
         char *       name = base->erd->namedQName.name;
+        char *       xmlns = base->erd->namedQName.xmlns;
+        char *       ns = base->erd->namedQName.ns;
         complex = mxmlNewElement(parent, name);
+        if (xmlns != NULL)
+        {
+            mxmlElementSetAttr(complex, xmlns, ns);
+        }
         stack_push(&writer->stack, complex);
     }
     return complex != NULL ? NULL : "Error making new complex element";
@@ -74,9 +80,15 @@ xmlInt32Elem(XMLWriter *writer, const ERD *erd, const int32_t *location)
 {
     mxml_node_t *parent = stack_top(&writer->stack);
     char *       name = erd->namedQName.name;
+    char *       xmlns = erd->namedQName.xmlns;
+    char *       ns = erd->namedQName.ns;
     mxml_node_t *simple = mxmlNewElement(parent, name);
     int32_t      value = *location;
     mxml_node_t *text = mxmlNewOpaquef(simple, "%i", value);
+    if (xmlns != NULL)
+    {
+        mxmlElementSetAttr(simple, xmlns, ns);
+    }
     return (simple != NULL && text != NULL)
                ? NULL
                : "Error making new int32 simple element";

@@ -20,8 +20,8 @@ typedef struct c2
 typedef struct c1
 {
     InfosetBase _base;
-    c2          c2;
     int32_t     e1;
+    c2          c2;
 } c1;
 
 #endif // GENERATED_CODE_H
