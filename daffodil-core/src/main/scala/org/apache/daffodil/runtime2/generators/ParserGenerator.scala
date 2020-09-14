@@ -82,8 +82,11 @@ class CodeGeneratorState(private val code: String) extends DFDL.CodeGeneratorSta
     val qname = context.namedQName.toQNameString
     val xmlns = if (context.namedQName.prefix.isDefined) s"xmlns:${context.namedQName.prefix.get}" else "xmlns"
     val ns = context.namedQName.namespace.toStringOrNullIfNoNS
-    val qnameInit = if (ns == null)
-      s"""    {"$qname"},          // namedQName.name"""
+    // Optimize away xmlns=ns declaration if possible, although this approach may not be entirely correct
+    val parentOpt = context.enclosingElements.headOption
+    val parentNs = if (parentOpt.isDefined) parentOpt.get.namedQName.namespace.toStringOrNullIfNoNS
+    val qnameInit = if (ns == null || ns == parentNs)
+      s"""    {"$qname"},       // namedQName.name"""
     else
       s"""    {
          |        "$qname",              // namedQName.name

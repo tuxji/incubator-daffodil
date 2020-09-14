@@ -29,14 +29,13 @@ object Dependencies {
     "xml-resolver" % "xml-resolver" % "1.2",
     "commons-io" % "commons-io" % "2.6",
     "jline" % "jline" % "2.14.6",
-    "com.lihaoyi" %% "os-lib" % "0.7.0", // for code generation
+    "com.lihaoyi" %% "os-lib" % "0.7.1", // for code generation
   )
 
   lazy val infoset = Seq(
     "org.jdom" % "jdom2" % "2.0.6",
     "com.fasterxml.woodstox" % "woodstox-core" % "5.1.0",
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.10.2",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.10.2"
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.10.2"
   )
    
   lazy val cli = Seq( 

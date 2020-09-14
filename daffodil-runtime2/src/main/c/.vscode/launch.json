@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/daffodil",
-            "args": ["unparse", "test_unparse_input"],
+            "args": ["parse", "test_parse_input"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

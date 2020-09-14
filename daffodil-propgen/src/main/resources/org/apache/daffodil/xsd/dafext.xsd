@@ -180,7 +180,7 @@
           <xs:annotation>
             <xs:documentation>
               TDMLDFDLProcessorFactory implementation to use when running TDML tests.  Allowed
-              values are "daffodil" (default), "codegen", and "ibm".
+              values are "daffodil" (default), "daffodil-runtime2", and "ibm".
             </xs:documentation>
           </xs:annotation>
         </xs:element>

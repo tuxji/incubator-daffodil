@@ -481,7 +481,7 @@ abstract class TestCase(testCaseXML: NodeSeq, val parent: DFDLTestSuite)
     // Our TDMLDFDLProcessorFactory implementation is a tunable choice with three values.
     val className = tunableObj.tdmlImplementation match {
       case "daffodil" => "org.apache.daffodil.tdml.processor.runtime1.TDMLDFDLProcessorFactory"
-      case "codegen" => "org.apache.daffodil.tdml.processor.runtime2.TDMLDFDLProcessorFactory"
+      case "daffodil-runtime2" => "org.apache.daffodil.tdml.processor.runtime2.TDMLDFDLProcessorFactory"
       case "ibm" => "org.apache.daffodil.tdml.processor.ibm.TDMLDFDLProcessorFactory"
     }
 

@@ -35,7 +35,7 @@ class TestGeneratedCodeCompiler {
         |""".stripMargin)
     val generatedCodeCompiler = new GeneratedCodeCompiler(pf)
     generatedCodeCompiler.compile(codeGeneratorState)
-    assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    assert(!pf.isError && pf.getDiagnostics.isEmpty, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
   }
 
   @Test
@@ -90,7 +90,7 @@ class TestGeneratedCodeCompiler {
     val b = Misc.hex2Bytes("000000FF")
     val input = new ByteArrayInputStream(b)
     val pr = dp.parse(input)
-    assert(!pr.isError, pr.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    assert(!pr.isError && pf.getDiagnostics.isEmpty, pr.getDiagnostics.map(_.getMessage()).mkString("\n"))
     // Our third step will be to create Daffodil's internal infoset representation from pr.infosetAsXML
     val (infoset: DIComplex, _, tunables) = TestInfoset.testInfoset(testSchema, pr.infosetAsXML)
     val Seq(e_erd) = infoset.erd.childERDs
@@ -132,7 +132,7 @@ class TestGeneratedCodeCompiler {
     val b = Misc.hex2Bytes("000000010000000200000003")
     val input = new ByteArrayInputStream(b)
     val pr = dp.parse(input)
-    assert(!pr.isError, pr.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    assert(!pr.isError && pf.getDiagnostics.isEmpty, pr.getDiagnostics.map(_.getMessage()).mkString("\n"))
     // Our third step will be to create Daffodil's internal infoset representation from pr.infosetAsXML
     val (infoset: DIComplex, _, tunables) = TestInfoset.testInfoset(testSchema, pr.infosetAsXML)
     assert(infoset.hasVisibleChildren)
