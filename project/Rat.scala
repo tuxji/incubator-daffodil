@@ -23,7 +23,7 @@ object Rat {
     file(".git"),
     file(".keep"),
 
-    // eclispe related files
+    // eclipse related files
     file(".classpath"),
     file(".project"),
     file(".jupiter"),
@@ -103,6 +103,7 @@ object Rat {
     file("daffodil-japi/src/test/resources/test/japi/myData5.dat"),
     file("daffodil-japi/src/test/resources/test/japi/myDataBroken.dat"),
     file("daffodil-japi/src/test/resources/test/japi/myData.dat"),
+    file("daffodil-runtime2/src/main/c/test_parse_input"),
     file("daffodil-sapi/src/test/resources/test/sapi/01very_simple.txt"),
     file("daffodil-sapi/src/test/resources/test/sapi/myData16.dat"),
     file("daffodil-sapi/src/test/resources/test/sapi/myData2.dat"),

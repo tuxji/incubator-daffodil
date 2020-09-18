@@ -17,14 +17,14 @@
 
 package org.apache.daffodil.grammar.primitives
 
-import org.apache.daffodil.grammar.Terminal
-import org.apache.daffodil.grammar.Gram
 import org.apache.daffodil.dsom._
+import org.apache.daffodil.grammar.Gram
+import org.apache.daffodil.grammar.Terminal
 import org.apache.daffodil.processors.parsers._
-import org.apache.daffodil.schema.annotation.props.SeparatorSuppressionPolicy
 import org.apache.daffodil.processors.unparsers._
-import org.apache.daffodil.util.Misc
 import org.apache.daffodil.runtime2.generators.CodeGeneratorState
+import org.apache.daffodil.schema.annotation.props.SeparatorSuppressionPolicy
+import org.apache.daffodil.util.Misc
 
 /**
  * Base class for all kinds of sequences.

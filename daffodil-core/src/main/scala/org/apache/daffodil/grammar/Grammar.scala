@@ -18,8 +18,7 @@
 package org.apache.daffodil.grammar
 
 import org.apache.daffodil.exceptions.Assert
-import org.apache.daffodil.Implicits._
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState; object INoWarn { ImplicitsSuppressUnusedImportWarning() }
+import org.apache.daffodil.Implicits._; object INoWarn { ImplicitsSuppressUnusedImportWarning() }
 import org.apache.daffodil.processors.unparsers.SeqCompUnparser
 import org.apache.daffodil.dsom._
 import org.apache.daffodil.processors.parsers.SeqCompParser
@@ -27,6 +26,7 @@ import org.apache.daffodil.compiler.ForUnparser
 import org.apache.daffodil.compiler.ForParser
 import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.processors.parsers.NadaParser
+import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 /**
  * BinaryGram isn't really 'binary' it's n-ary. It is called binary because it comes from

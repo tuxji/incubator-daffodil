@@ -57,20 +57,20 @@ class BinaryIntegerKnownLength(val e: ElementBase, signed: Boolean, lengthInBits
 
   override lazy val unparser: Unparser = new BinaryIntegerKnownLengthUnparser(e.elementRuntimeData, signed, lengthInBits.toInt)
 
-    override def generateCode(cgState: CodeGeneratorState): Unit = {
-      context.schemaDefinitionUnless(context.enclosingElements.length == 1, "Multiple parents for a type not supported in generateCode yet")
-      val isSigned = e.primType.isSubtypeOf(NodeInfo.SignedNumeric)
-      val generator = new BinaryIntegerKnownLengthParserGenerator(
-        e,
-        isSigned,
-        e.elementLengthInBitsEv,
-        e.alignmentValueInBits.intValue(),
-        e.byteOrderEv,
-        e.bitOrder,
-        context.enclosingElements.head.namedQName.local,
-        e.name)
-      generator.generateCode(cgState)
-    }
+  override def generateCode(cgState: CodeGeneratorState): Unit = {
+    context.schemaDefinitionUnless(context.enclosingElements.length == 1, "Multiple parents for a type not supported in generateCode yet")
+    val isSigned = e.primType.isSubtypeOf(NodeInfo.SignedNumeric)
+    val generator = new BinaryIntegerKnownLengthParserGenerator(
+      e,
+      isSigned,
+      e.elementLengthInBitsEv,
+      e.alignmentValueInBits.intValue(),
+      e.byteOrderEv,
+      e.bitOrder,
+      context.enclosingElements.head.namedQName.local,
+      e.name)
+    generator.generateCode(cgState)
+  }
 }
 
 class BinaryIntegerPrefixedLength(val e: ElementBase, signed: Boolean) extends Terminal(e, true) {

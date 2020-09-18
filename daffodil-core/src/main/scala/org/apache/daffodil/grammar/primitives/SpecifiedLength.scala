@@ -18,7 +18,6 @@
 package org.apache.daffodil.grammar.primitives
 
 import java.util.regex.PatternSyntaxException
-
 import org.apache.daffodil.dsom.ElementBase
 import org.apache.daffodil.grammar.Gram
 import org.apache.daffodil.grammar.Terminal
