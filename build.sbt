@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
+import scala.collection.immutable.ListSet
+import sbtcc._
+
 lazy val genManaged = taskKey[Unit]("Generate managed sources and resources")
 lazy val genProps = taskKey[Seq[File]]("Generate properties scala source")
 lazy val genSchemas = taskKey[Seq[File]]("Generated DFDL schemas")
 
-lazy val daffodil         = Project("daffodil", file(".")).configs(IntegrationTest)
+lazy val daffodil         = project.in(file(".")).configs(IntegrationTest)
                               .enablePlugins(JavaUnidocPlugin, ScalaUnidocPlugin)
-                              .aggregate(macroLib, propgen, lib, io, runtime1, runtime1Unparser, core, japi, sapi, tdmlLib, tdmlProc, cli, udf, test, testIBM1, tutorials, testStdLayout)
+                              .aggregate(macroLib, propgen, lib, io, runtime1, runtime1Unparser, runtime2, core, japi, sapi, tdmlLib, tdmlProc, cli, udf, test, testIBM1, tutorials, testStdLayout)
                               .settings(commonSettings, nopublish, ratSettings, unidocSettings)
 
 lazy val macroLib         = Project("daffodil-macro-lib", file("daffodil-macro-lib")).configs(IntegrationTest)
@@ -42,6 +45,32 @@ lazy val io               = Project("daffodil-io", file("daffodil-io")).configs(
 lazy val runtime1         = Project("daffodil-runtime1", file("daffodil-runtime1")).configs(IntegrationTest)
                               .dependsOn(io, lib % "test->test", udf, macroLib % "compile-internal, test-internal")
                               .settings(commonSettings, usesMacros)
+
+val runtime2StaticLib     = Library("libruntime2.a")
+lazy val runtime2         = Project("daffodil-runtime2", file("daffodil-runtime2")).configs(IntegrationTest)
+                              .enablePlugins(CcPlugin)
+                              .dependsOn(tdmlProc)
+                              .settings(commonSettings)
+                              .settings(publishArtifact in (Compile, packageDoc) := false)
+                              .settings(
+                                Compile / ccTargets := ListSet(runtime2StaticLib),
+                                Compile / cSources  := Map(
+                                  runtime2StaticLib -> Seq(
+                                    baseDirectory.value / "src" / "main" / "c" / "common_runtime.c",
+                                    baseDirectory.value / "src" / "main" / "c" / "daffodil_argp.c",
+                                    baseDirectory.value / "src" / "main" / "c" / "daffodil_main.c",
+                                    baseDirectory.value / "src" / "main" / "c" / "stack.c",
+                                    baseDirectory.value / "src" / "main" / "c" / "xml_reader.c",
+                                    baseDirectory.value / "src" / "main" / "c" / "xml_writer.c",
+                                  ),
+                                ),
+                                Compile / cFlags := (Compile / cFlags).value.withDefaultValue(Seq(
+                                  "-g",
+                                  "-Wall",
+                                  "-Wextra",
+                                  "-Wno-missing-field-initializers",
+                                ))
+                              )
 
 lazy val runtime1Unparser = Project("daffodil-runtime1-unparser", file("daffodil-runtime1-unparser")).configs(IntegrationTest)
                               .dependsOn(runtime1, lib % "test->test", runtime1 % "test->test")

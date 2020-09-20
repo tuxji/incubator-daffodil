@@ -26,6 +26,7 @@ import org.apache.daffodil.compiler.ForUnparser
 import org.apache.daffodil.compiler.ForParser
 import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.processors.parsers.NadaParser
+import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 /**
  * BinaryGram isn't really 'binary' it's n-ary. It is called binary because it comes from
@@ -107,6 +108,12 @@ class SeqComp private (context: SchemaComponent, children: Seq[Gram]) extends Bi
     if (unparserChildren.isEmpty) new NadaUnparser(context.runtimeData)
     else if (unparserChildren.length == 1) unparserChildren(0)
     else new SeqCompUnparser(context.runtimeData, unparserChildren.toVector)
+  }
+
+  override def generateCode(cgState: CodeGeneratorState): Unit = {
+    for (elem <- children) {
+      elem.generateCode(cgState)
+    }
   }
 }
 

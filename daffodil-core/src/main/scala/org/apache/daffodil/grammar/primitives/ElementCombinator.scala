@@ -20,16 +20,18 @@ package org.apache.daffodil.grammar.primitives
 import org.apache.daffodil.dsom.ElementBase
 import org.apache.daffodil.equality.TypeEqual
 import org.apache.daffodil.exceptions.Assert
+import org.apache.daffodil.grammar.EmptyGram
 import org.apache.daffodil.grammar.Gram
 import org.apache.daffodil.grammar.NamedGram
 import org.apache.daffodil.grammar.Terminal
-import org.apache.daffodil.processors.parsers.ElementParser
-import org.apache.daffodil.processors.parsers.ElementParserNoRep
-import org.apache.daffodil.processors.parsers.Parser
 import org.apache.daffodil.processors.parsers.CaptureEndOfContentLengthParser
 import org.apache.daffodil.processors.parsers.CaptureEndOfValueLengthParser
 import org.apache.daffodil.processors.parsers.CaptureStartOfContentLengthParser
 import org.apache.daffodil.processors.parsers.CaptureStartOfValueLengthParser
+import org.apache.daffodil.processors.parsers.ElementParser
+import org.apache.daffodil.processors.parsers.ElementParserNoRep
+import org.apache.daffodil.processors.parsers.NadaParser
+import org.apache.daffodil.processors.parsers.Parser
 import org.apache.daffodil.processors.unparsers.CaptureEndOfContentLengthUnparser
 import org.apache.daffodil.processors.unparsers.CaptureEndOfValueLengthUnparser
 import org.apache.daffodil.processors.unparsers.CaptureStartOfContentLengthUnparser
@@ -41,11 +43,14 @@ import org.apache.daffodil.processors.unparsers.ElementUnparserNoRep
 import org.apache.daffodil.processors.unparsers.ElementUnspecifiedLengthUnparser
 import org.apache.daffodil.processors.unparsers.ElementUnusedUnparser
 import org.apache.daffodil.processors.unparsers.LeftCenteredPaddingUnparser
-import org.apache.daffodil.processors.unparsers.SimpleTypeRetryUnparser
+import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.processors.unparsers.OnlyPaddingUnparser
 import org.apache.daffodil.processors.unparsers.RightCenteredPaddingUnparser
 import org.apache.daffodil.processors.unparsers.RightFillUnparser
+import org.apache.daffodil.processors.unparsers.SimpleTypeRetryUnparser
 import org.apache.daffodil.processors.unparsers.Unparser
+import org.apache.daffodil.runtime2.generators.CodeGeneratorState
+import org.apache.daffodil.runtime2.generators.ElementParserGenerator
 import org.apache.daffodil.schema.annotation.props.gen.LengthKind
 import org.apache.daffodil.schema.annotation.props.gen.Representation
 import org.apache.daffodil.schema.annotation.props.gen.TestKind
@@ -105,7 +110,7 @@ class ElementCombinator(
     else Maybe(eAfterValue.unparser)
 
   private lazy val eReptypeUnparser: Maybe[Unparser] = repTypeElementGram.maybeUnparser
-    
+
   override lazy val unparser: Unparser = {
     if (context.isOutputValueCalc) {
       new ElementOVCSpecifiedLengthUnparser(
@@ -133,6 +138,9 @@ class ElementCombinator(
       subComb.unparser
     }
   }
+
+  final override def generateCode(state: CodeGeneratorState) =
+    subComb.generateCode(state)
 
 }
 
@@ -235,6 +243,10 @@ case class CaptureContentLengthStart(ctxt: ElementBase)
       new CaptureStartOfContentLengthUnparser(ctxt.erd)
     else
       new NadaUnparser(ctxt.erd)
+
+  override def generateCode(state: CodeGeneratorState): Unit = {
+    // Not generating code here
+  }
 }
 
 case class CaptureContentLengthEnd(ctxt: ElementBase)
@@ -250,6 +262,10 @@ case class CaptureContentLengthEnd(ctxt: ElementBase)
       new CaptureEndOfContentLengthUnparser(ctxt.erd, ctxt.maybeFixedLengthInBits)
     else
       new NadaUnparser(ctxt.erd)
+
+  override def generateCode(state: CodeGeneratorState): Unit = {
+    // Not generating code here
+  }
 }
 
 case class CaptureValueLengthStart(ctxt: ElementBase)
@@ -265,6 +281,10 @@ case class CaptureValueLengthStart(ctxt: ElementBase)
       new CaptureStartOfValueLengthUnparser(ctxt.erd)
     else
       new NadaUnparser(ctxt.erd)
+
+  override def generateCode(state: CodeGeneratorState): Unit = {
+    // Not generating code here
+  }
 }
 
 case class CaptureValueLengthEnd(ctxt: ElementBase)
@@ -280,8 +300,11 @@ case class CaptureValueLengthEnd(ctxt: ElementBase)
       new CaptureEndOfValueLengthUnparser(ctxt.erd)
     else
       new NadaUnparser(ctxt.erd)
-}
 
+  override def generateCode(state: CodeGeneratorState): Unit = {
+    // Not generating code here
+  }
+}
 
 class ElementParseAndUnspecifiedLength(context: ElementBase, eBeforeGram: Gram, eGram: Gram, eAfterGram: Gram, repTypeElementGram: Gram)
   extends ElementCombinatorBase(context, eBeforeGram, eGram, eAfterGram, repTypeElementGram) {
@@ -328,9 +351,21 @@ class ElementParseAndUnspecifiedLength(context: ElementBase, eBeforeGram: Gram, 
       new ElementUnparserNoRep(context.erd, uSetVar)
     }
   }
+
+  override def generateCode(cgState: CodeGeneratorState): Unit = {
+    context.schemaDefinitionWhen(context.inputValueCalcOption.isDefined, "Elements with inputValueCalc are not supported.")
+    context.schemaDefinitionWhen(context.outputValueCalcOption.isDefined, "Elements with outputValueCalc are not supported.")
+    context.schemaDefinitionUnless(eBeforeGram.isEmpty, "Statements associated with elements are not supported.")
+    context.schemaDefinitionUnless(eAfterGram.isEmpty, "Statements associated with elements are not supported.")
+    context.schemaDefinitionUnless(repTypeElementGram.isEmpty, "dfdlx:repType is not supported.")
+
+    val elementContentGenerator = eGram // a Gram isA ParserGenerator
+    val e = new ElementParserGenerator(context, elementContentGenerator)
+    e.generateCode(cgState)
+  }
 }
 
-abstract class ElementCombinatorBase(context: ElementBase, eGramBefore: Gram, eGram: Gram, eGramAfter: Gram, repTypeElementGram:Gram)
+abstract class ElementCombinatorBase(context: ElementBase, eGramBefore: Gram, eGram: Gram, eGramAfter: Gram, repTypeElementGram: Gram)
   extends NamedGram(context) {
 
   override def toString() = "<element name='" + name + "'>" + eGram.toString() + "</element>"
@@ -376,7 +411,7 @@ abstract class ElementCombinatorBase(context: ElementBase, eGramBefore: Gram, eG
   lazy val eParser: Maybe[Parser] = eGram.maybeParser
 
   lazy val eAfterParser: Maybe[Parser] = eGramAfter.maybeParser
-  
+
   lazy val eRepTypeParser: Maybe[Parser] = repTypeElementGram.maybeParser
 
   def parser: Parser
@@ -388,7 +423,7 @@ abstract class ElementCombinatorBase(context: ElementBase, eGramBefore: Gram, eG
   lazy val eUnparser: Maybe[Unparser] = eGram.maybeUnparser
 
   lazy val eAfterUnparser: Maybe[Unparser] = eGramAfter.maybeUnparser
-  
+
   lazy val eRepTypeUnparser: Maybe[Unparser] = repTypeElementGram.maybeUnparser
 
   def unparser: Unparser

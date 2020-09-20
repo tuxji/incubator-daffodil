@@ -42,6 +42,18 @@ mappings in Universal ++= Seq(
   baseDirectory.value / "README.md" -> "README.md",
 )
 
+mappings in Universal ++= Seq(
+  baseDirectory.value / ".." / "daffodil-runtime2" / "src" / "main" / "c" / "common_runtime.h" -> "include/common_runtime.h",
+  baseDirectory.value / ".." / "daffodil-runtime2" / "src" / "main" / "c" / "daffodil_argp.h" -> "include/daffodil_argp.h",
+  baseDirectory.value / ".." / "daffodil-runtime2" / "src" / "main" / "c" / "stack.h" -> "include/stack.h",
+  baseDirectory.value / ".." / "daffodil-runtime2" / "src" / "main" / "c" / "xml_reader.h" -> "include/xml_reader.h",
+  baseDirectory.value / ".." / "daffodil-runtime2" / "src" / "main" / "c" / "xml_writer.h" -> "include/xml_writer.h",
+)
+
+mappings in Universal ++= Seq(
+  baseDirectory.value / ".." / "daffodil-runtime2" / "target" / "streams" / "compile" / "ccTargetMap" / "_global" / "streams" / "compile" / "sbtcc.Library" / "libruntime2.a" -> "lib/libruntime2.a",
+)
+
 //
 // RPM configuration
 //
