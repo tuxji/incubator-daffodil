@@ -380,11 +380,27 @@
             </xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element name="runtime" type="xs:string" default="runtime1" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              Runtime implementation to use when running daffodil parse or unparse.
+              Allowed values are "runtime1" (default) and "runtime2".
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element name="suppressSchemaDefinitionWarnings" type="daf:TunableSuppressSchemaDefinitionWarnings" default="emptyElementParsePolicyError" minOccurs="0">
           <xs:annotation>
             <xs:documentation>
               Space-separated list of schema definition warnings that should be ignored,
               or "all" to ignore all warnings.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="tdmlImplementation" type="xs:string" default="daffodil" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>
+              TDMLDFDLProcessorFactory implementation to use when running TDML tests.
+              Allowed values are "daffodil" (default), "daffodil-runtime2", and "ibm".
             </xs:documentation>
           </xs:annotation>
         </xs:element>

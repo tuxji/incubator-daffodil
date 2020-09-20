@@ -24,6 +24,7 @@ import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.compiler.ForUnparser
 import org.apache.daffodil.compiler.ForParser
 import org.apache.daffodil.util.LogLevel
+import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 /**
  * Prod or Grammar Production
@@ -96,5 +97,9 @@ final class Prod(nameArg: String, val sc: SchemaComponent, guard: Boolean, gramA
       new NadaUnparser(context.runtimeData)
     else
       unp
+  }
+
+  override def generateCode(cgState: CodeGeneratorState): Unit = {
+    if (guard) gram.generateCode(cgState)
   }
 }

@@ -145,7 +145,7 @@ object DFDL {
     def onPath(xpath: String): DataProcessor
   }
 
-  trait DataProcessor extends WithDiagnostics {
+  trait DataProcessorBase {
 
     /**
      * Returns a data processor with all the same state, but the validation mode changed to that of the argument.
@@ -179,7 +179,9 @@ object DFDL {
     def setTunable(tunable: String, value: String): Unit
     @deprecated("Use withTunables.", "2.6.0")
     def setTunables(tunables: Map[String,String]): Unit
+}
 
+  trait DataProcessor extends DataProcessorBase with WithDiagnostics {
     /**
      * Creates a new instance of XMLReader for SAX Parsing/Unparsing
      */
@@ -200,6 +202,14 @@ object DFDL {
     def parse(is: java.io.InputStream): Unit
     def parse(in: InputSourceDataInputStream): Unit
     def parse(ab: Array[Byte]): Unit
+  }
+
+  trait CodeGeneratorState {
+    // Extended by runtime2's CodeGeneratorState class but contains no
+    // methods to be implemented.  If we decide to move
+    // daffodil-core's runtime2 classes to daffodil-runtime2, then we
+    // will define a CodeGeneratorState API in this trait and
+    // implement the methods in runtime2's CodeGeneratorState class.
   }
 
   trait ParseResult extends Result with WithDiagnostics {
