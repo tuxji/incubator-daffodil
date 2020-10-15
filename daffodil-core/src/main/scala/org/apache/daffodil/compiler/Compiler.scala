@@ -38,6 +38,7 @@ import org.apache.daffodil.exceptions.Assert
 import org.apache.daffodil.externalvars.Binding
 import org.apache.daffodil.externalvars.ExternalVariablesLoader
 import org.apache.daffodil.processors.DataProcessor
+import org.apache.daffodil.runtime2.Runtime2CodeGenerator
 import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 import org.apache.daffodil.util.LogLevel
 import org.apache.daffodil.util.Logging
@@ -122,9 +123,9 @@ final class ProcessorFactory private(
     copy(optRootSpec = RootSpec.makeRootSpec(Option(name), Option(namespace)))
   }
 
-  final def generateCode(): CodeGeneratorState = {
+  def generateCode(): CodeGeneratorState = {
     val cgState = new CodeGeneratorState()
-    sset.root.document.generateCode(cgState)
+    Runtime2CodeGenerator.generateCode(sset.root.document, cgState)
     cgState
   }
 }
@@ -170,7 +171,7 @@ class Compiler private (var validateDFDLSchemas: Boolean,
   }
 
   @deprecated("Use constructor argument.", "2.6.0")
-  def setValidateDFDLSchemas(value: Boolean) = validateDFDLSchemas = value
+  def setValidateDFDLSchemas(value: Boolean): Unit = validateDFDLSchemas = value
 
   def withValidateDFDLSchemas(value: Boolean) = copy(validateDFDLSchemas = value)
 
@@ -286,10 +287,10 @@ class Compiler private (var validateDFDLSchemas: Boolean,
       //
       case cnf: ClassNotFoundException => {
         val cpString =
-          if (Misc.classPath.length == 0) " empty."
+          if (Misc.classPath.isEmpty) " empty."
           else ":\n" + Misc.classPath.mkString("\n\t")
         val fmtMsg = "%s\nThe class may not exist in this Java JVM version (%s), or it is missing from the classpath which is%s"
-        val msg = fmtMsg.format(cnf.getMessage(), scala.util.Properties.javaVersion, cpString)
+        val msg = fmtMsg.format(cnf.getMessage, scala.util.Properties.javaVersion, cpString)
         throw new InvalidParserException(msg, cnf)
       }
     }
@@ -336,10 +337,10 @@ class Compiler private (var validateDFDLSchemas: Boolean,
     val err = pf.isError
     val diags = pf.getDiagnostics // might be warnings even if not isError
     if (err) {
-      Assert.invariant(diags.length > 0)
+      Assert.invariant(diags.nonEmpty)
       log(LogLevel.Compile, "Compilation (ProcessorFactory) produced %d errors/warnings.", diags.length)
     } else {
-      if (diags.length > 0) {
+      if (diags.nonEmpty) {
         log(LogLevel.Compile, "Compilation (ProcessorFactory) produced %d warnings.", diags.length)
       } else {
         log(LogLevel.Compile, "ProcessorFactory completed with no errors.")

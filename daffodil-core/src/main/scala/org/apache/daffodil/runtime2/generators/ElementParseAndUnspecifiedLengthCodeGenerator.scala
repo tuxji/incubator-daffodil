@@ -17,16 +17,25 @@
 
 package org.apache.daffodil.runtime2.generators
 
-import org.apache.daffodil.dsom.ElementBase
+import org.apache.daffodil.grammar.primitives.ElementParseAndUnspecifiedLength
+import org.apache.daffodil.runtime2.Runtime2CodeGenerator
 
-class ElementParserGenerator(context: ElementBase, contentParserGenerator: ParserGenerator)
-  extends ParserGenerator {
+trait ElementParseAndUnspecifiedLengthCodeGenerator {
 
-  override def generateCode(cgState: CodeGeneratorState): Unit = {
+  def elementParseAndUnspecifiedLengthGenerateCode(g: ElementParseAndUnspecifiedLength,
+                                                   cgState: CodeGeneratorState): Unit = {
+    val context = g.context
+    val elementContentGram = g.eGram // a Gram isA ParserGenerator
+
+    context.schemaDefinitionWhen(context.inputValueCalcOption.isDefined, "Elements with inputValueCalc are not supported.")
+    context.schemaDefinitionWhen(context.outputValueCalcOption.isDefined, "Elements with outputValueCalc are not supported.")
+    context.schemaDefinitionUnless(g.eBeforeGram.isEmpty, "Statements associated with elements are not supported.")
+    context.schemaDefinitionUnless(g.eAfterGram.isEmpty, "Statements associated with elements are not supported.")
+    context.schemaDefinitionUnless(g.repTypeElementGram.isEmpty, "dfdlx:repType is not supported.")
 
     if (context.isSimpleType) {
       cgState.addSimpleTypeERD(context) // ERD static initializer
-      contentParserGenerator.generateCode(cgState) // initSelf, parseSelf, unparseSelf
+      Runtime2CodeGenerator.generateCode(elementContentGram, cgState) // initSelf, parseSelf, unparseSelf
     } else {
       cgState.pushComplexElement(context)
       context.elementChildren.foreach { child =>
@@ -35,7 +44,7 @@ class ElementParserGenerator(context: ElementBase, contentParserGenerator: Parse
           cgState.addComputations(child) // offset, ERD computations
         }
         cgState.addFieldDeclaration(context, child) // struct member for child
-        child.enclosedElement.generateCode(cgState) // generate children too
+        Runtime2CodeGenerator.generateCode(child.enclosedElement, cgState) // generate children too
       }
       cgState.addStruct(context) // struct definition
       cgState.addImplementation(context) // initSelf, parseSelf, unparseSelf

@@ -22,7 +22,6 @@ import org.apache.daffodil.grammar.Gram
 import org.apache.daffodil.grammar.Terminal
 import org.apache.daffodil.processors.parsers._
 import org.apache.daffodil.processors.unparsers._
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 import org.apache.daffodil.schema.annotation.props.SeparatorSuppressionPolicy
 import org.apache.daffodil.util.Misc
 
@@ -30,14 +29,14 @@ import org.apache.daffodil.util.Misc
  * Base class for all kinds of sequences.
  */
 abstract class SequenceCombinator(sq: SequenceTermBase, sequenceChildren: Seq[SequenceChild])
-  extends Terminal(sq, sequenceChildren.length > 0) {
+  extends Terminal(sq, sequenceChildren.nonEmpty) {
 
   /**
    * Shorthand for getting the sequence runtime data.
    */
   val srd = sq.sequenceRuntimeData
 
-  override def toString() =
+  override def toString: String =
     "<" + Misc.getNameFromClass(this) + ">" +
       sequenceChildren.map { _.toString() }.mkString +
       "</" + Misc.getNameFromClass(this) + ">"
@@ -50,7 +49,7 @@ class OrderedSequence(sq: SequenceTermBase, sequenceChildrenArg: Seq[SequenceChi
   private lazy val sepParser = sepGram.parser
   private lazy val sepUnparser = sepGram.unparser
 
-  private lazy val sequenceChildren = sequenceChildrenArg.toVector
+  lazy val sequenceChildren = sequenceChildrenArg.toVector
 
   override lazy val parser: Parser = sq.hasSeparator match {
     case true => new OrderedSeparatedSequenceParser(
@@ -91,16 +90,6 @@ class OrderedSequence(sq: SequenceTermBase, sequenceChildrenArg: Seq[SequenceChi
             childUnparsers)
       }
     }
-  }
-
-  override def generateCode(cgState: CodeGeneratorState): Unit = {
-    //
-    // To lift this draconian restriction, we have to
-    // generate code for each of the children, and combine them into a block
-    //
-    sq.schemaDefinitionUnless(sequenceChildren.length == 1, "Only a single child of a sequence is supported.")
-    val child1 = sequenceChildren(0)
-    child1.generateCode(cgState)
   }
 }
 

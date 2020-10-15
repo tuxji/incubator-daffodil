@@ -26,7 +26,6 @@ import org.apache.daffodil.compiler.ForUnparser
 import org.apache.daffodil.compiler.ForParser
 import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.processors.parsers.NadaParser
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 /**
  * BinaryGram isn't really 'binary' it's n-ary. It is called binary because it comes from
@@ -42,7 +41,7 @@ abstract class BinaryGram(context: SchemaComponent, childrenArg: Seq[Gram]) exte
   protected def open: String
   protected def close: String
 
-  protected final lazy val children = {
+  lazy val children = {
     val c = childrenArg
     c
   }
@@ -88,7 +87,7 @@ class SeqComp private (context: SchemaComponent, children: Seq[Gram]) extends Bi
 
   final override lazy val parser = {
     if (parserChildren.isEmpty) new NadaParser(context.runtimeData)
-    else if (parserChildren.length == 1) parserChildren(0)
+    else if (parserChildren.length == 1) parserChildren.head
     else new SeqCompParser(context.runtimeData, parserChildren.toVector)
   }
 
@@ -106,14 +105,8 @@ class SeqComp private (context: SchemaComponent, children: Seq[Gram]) extends Bi
 
   final override lazy val unparser = {
     if (unparserChildren.isEmpty) new NadaUnparser(context.runtimeData)
-    else if (unparserChildren.length == 1) unparserChildren(0)
+    else if (unparserChildren.length == 1) unparserChildren.head
     else new SeqCompUnparser(context.runtimeData, unparserChildren.toVector)
-  }
-
-  override def generateCode(cgState: CodeGeneratorState): Unit = {
-    for (elem <- children) {
-      elem.generateCode(cgState)
-    }
   }
 }
 

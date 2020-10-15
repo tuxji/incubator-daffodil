@@ -23,7 +23,6 @@ import org.apache.daffodil.exceptions.Assert
 import org.apache.daffodil.grammar._
 import org.apache.daffodil.processors.parsers._
 import org.apache.daffodil.processors.unparsers._
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 import org.apache.daffodil.schema.annotation.props.SeparatorSuppressionPolicy
 import org.apache.daffodil.schema.annotation.props.gen.LengthKind
 import org.apache.daffodil.schema.annotation.props.gen.OccursCountKind
@@ -467,10 +466,6 @@ class ScalarOrderedSequenceChild(sq: SequenceTermBase, term: Term, groupIndex: I
 
   private lazy val unsepScalarElementHelper: UnseparatedHelper = {
     new ScalarElementUnseparatedSequenceChildParseResultHelper(erd, eep, isEmptyRepZeroLength, isEmptyRepNonZeroLength)
-  }
-
-  override def generateCode(cgState: CodeGeneratorState): Unit = {
-    term.termContentBody.generateCode(cgState)
   }
 }
 

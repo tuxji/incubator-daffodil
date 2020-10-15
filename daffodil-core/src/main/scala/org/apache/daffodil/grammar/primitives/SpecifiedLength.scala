@@ -29,7 +29,6 @@ import org.apache.daffodil.processors.parsers.SpecifiedLengthExplicitParser
 import org.apache.daffodil.processors.parsers.SpecifiedLengthImplicitParser
 import org.apache.daffodil.dpath.NodeInfo.PrimType
 import org.apache.daffodil.processors.parsers.Parser
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 abstract class SpecifiedLengthCombinatorBase(val e: ElementBase, eGramArg: => Gram)
   extends Terminal(e, true) {
@@ -142,18 +141,6 @@ class SpecifiedLengthImplicit(e: ElementBase, eGram: => Gram, nBits: Long)
     eParser,
     e.elementRuntimeData,
     nBits)
-
-  /**
-   * Generate code for runtime2.
-   *
-   * Differs from runtime1 where this provides a centralized place
-   * where checks for sufficient available bits are done.
-   *
-   * In runtime2, each primitive does this itself as it parses.
-   * (for now at least.)
-   */
-  override def generateCode(cgState: CodeGeneratorState) =
-    eGram.generateCode(cgState)
 }
 
 class SpecifiedLengthPrefixed(e: ElementBase, eGram: => Gram, bitsMultiplier: Int)

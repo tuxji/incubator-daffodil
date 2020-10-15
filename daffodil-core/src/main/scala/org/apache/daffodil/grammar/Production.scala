@@ -24,7 +24,6 @@ import org.apache.daffodil.processors.unparsers.NadaUnparser
 import org.apache.daffodil.compiler.ForUnparser
 import org.apache.daffodil.compiler.ForParser
 import org.apache.daffodil.util.LogLevel
-import org.apache.daffodil.runtime2.generators.CodeGeneratorState
 
 /**
  * Prod or Grammar Production
@@ -42,7 +41,11 @@ import org.apache.daffodil.runtime2.generators.CodeGeneratorState
  * Prod objects are not required. They essentially provide some useful debug capability
  * because a grammar term object will display as it's name, not as some anonymous object.
  */
-final class Prod(nameArg: String, val sc: SchemaComponent, guard: Boolean, gramArg: => Gram, override val forWhat: ParserOrUnparser)
+final class Prod(nameArg: String,
+                 val sc: SchemaComponent,
+                 val guard: Boolean,
+                 gramArg: => Gram,
+                 override val forWhat: ParserOrUnparser)
   extends NamedGram(sc) {
 
   final override def deref = gram
@@ -97,9 +100,5 @@ final class Prod(nameArg: String, val sc: SchemaComponent, guard: Boolean, gramA
       new NadaUnparser(context.runtimeData)
     else
       unp
-  }
-
-  override def generateCode(cgState: CodeGeneratorState): Unit = {
-    if (guard) gram.generateCode(cgState)
   }
 }

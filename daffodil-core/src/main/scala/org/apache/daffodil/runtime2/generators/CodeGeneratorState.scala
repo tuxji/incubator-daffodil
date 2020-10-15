@@ -26,13 +26,6 @@ import org.apache.daffodil.exceptions.ThrowsSDE
 import scala.collection.mutable
 
 /**
- * Gives an object the ability to generate code.
- */
-trait ParserGenerator {
-  def generateCode(state: CodeGeneratorState): Unit
-}
-
-/**
  * Builds up the state of generated code.
  */
 class CodeGeneratorState extends DFDL.CodeGeneratorState {
