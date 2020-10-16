@@ -17,7 +17,7 @@
 
 #include "common_runtime.h" // for walkInfoset, InfosetBase, ERD, ...
 #include "daffodil_argp.h"  // for daffodil_cli, parse_daffodil_cli, ...
-#include "generated_code.h" // for rootInfoset
+#include "root_infoset.h"   // for rootInfoset
 #include "xml_reader.h"     // for xmlReaderMethods, XMLReader
 #include "xml_writer.h"     // for xmlWriterMethods, XMLWriter
 #include <error.h>          // for error

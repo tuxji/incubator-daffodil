@@ -50,7 +50,7 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
     val includeDir = if (os.exists(wd/"include"))
       wd/"include"
     else
-      wd/"daffodil-runtime2"/"src"/"main"/"c"
+      wd/"daffodil-runtime2"/"src"/"main"/"c"/"common_runtime"
     val libDir = if (os.exists(wd/"lib"))
       wd/"lib"
     else

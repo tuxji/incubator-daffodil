@@ -18,7 +18,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "C/C++: gcc build active file",
+            "label": "C/C++: gcc build daffodil",
             "command": "/usr/bin/gcc",
             "args": [
                 "-Wall",
@@ -26,14 +26,15 @@
                 "-Wno-missing-field-initializers",
                 "-g",
                 "-I",
-                ".",
-                "**.c",
+                "common_runtime",
+                "common_runtime/*.c",
+                "*.c",
                 "-L",
                 ".",
                 "-lmxml",
                 "-lpthread",
                 "-o",
-                "${fileDirname}/daffodil"
+                "${workspaceFolder}/daffodil"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

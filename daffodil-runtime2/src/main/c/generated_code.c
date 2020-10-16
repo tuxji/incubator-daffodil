@@ -16,6 +16,7 @@
  */
 
 #include "generated_code.h"
+#include "root_infoset.h" // for rootInfoset
 #include <endian.h> // for be32toh, htobe32
 #include <errno.h>  // for errno
 #include <stddef.h> // for ptrdiff_t

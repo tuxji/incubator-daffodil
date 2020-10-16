@@ -224,11 +224,7 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
          |
          |#include "common_runtime.h" // for InfosetBase
          |#include <stdint.h>         // for int32_t
-         |
-         |// Return the root of an infoset to be used for parsing or unparsing
-         |
-         |extern InfosetBase *rootInfoset();
-         |
+
          |// Define some infoset structures
          |
          |$structs
@@ -243,6 +239,7 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
     val finalImplementation = this.finalImplementation.mkString("\n")
     val code =
       s"""#include "generated_code.h"
+         |#include "root_infoset.h" // for rootInfoset
          |#include <endian.h> // for be32toh, htobe32
          |#include <errno.h>  // for errno
          |#include <stddef.h> // for ptrdiff_t
