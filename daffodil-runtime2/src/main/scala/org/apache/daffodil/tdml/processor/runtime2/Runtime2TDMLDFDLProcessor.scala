@@ -103,9 +103,8 @@ final class TDMLDFDLProcessorFactory private(
     } else {
       // How can we move some of these calls to ProcessorFactory with tunable runtime = "runtime2"?
       val rootElementName = optRootName.getOrElse("FIXME")
-      val codeGeneratorState = pf.generateCode()
       val generatedCodeCompiler = new GeneratedCodeCompiler(pf)
-      generatedCodeCompiler.compile(rootElementName, codeGeneratorState)
+      generatedCodeCompiler.compile(rootElementName)
       val compileResult = if (pf.isError) {
         Left(pf.getDiagnostics) // C code compilation diagnostics
       } else {

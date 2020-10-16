@@ -29,10 +29,14 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
   private lazy val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
 
   /**
-   * Compiles and links generated C code with runtime2 library to
-   * build an executable file.
+   * Generates C code from the processor factory's compiled DFDL schema to
+   * parse or unparse the given root element, compiles the generated C code,
+   * and links it with the runtime2 library to build an executable file.
    */
-  def compile(rootElementName: String, codeGeneratorState: CodeGeneratorState): Unit = {
+  def compile(rootElementName: String): Unit = {
+    val codeGeneratorState = new CodeGeneratorState()
+    Runtime2CodeGenerator.generateCode(pf.sset.root.document, codeGeneratorState)
+
     val compiler = "cc"
     val location = Option(this.getClass.getProtectionDomain.getCodeSource) flatMap (x => Option(x.getLocation))
     val wd = if (os.exists(os.pwd/"daffodil-runtime2"))

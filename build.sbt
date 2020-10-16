@@ -49,7 +49,7 @@ lazy val runtime1         = Project("daffodil-runtime1", file("daffodil-runtime1
 val runtime2StaticLib     = Library("libruntime2.a")
 lazy val runtime2         = Project("daffodil-runtime2", file("daffodil-runtime2")).configs(IntegrationTest)
                               .enablePlugins(CcPlugin)
-                              .dependsOn(tdmlProc)
+                              .dependsOn(core, core % "test->test", tdmlProc)
                               .settings(commonSettings)
                               .settings(publishArtifact in (Compile, packageDoc) := false)
                               .settings(
@@ -135,7 +135,7 @@ lazy val commonSettings = Seq(
   organization := "org.apache.daffodil",
   version := "3.0.0-SNAPSHOT",
   scalaVersion := "2.12.11",
-  crossScalaVersions := Seq("2.12.11", "2.11.12"),
+  crossScalaVersions := Seq("2.12.11"),
   scalacOptions ++= Seq(
     "-feature",
     "-deprecation",

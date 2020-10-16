@@ -55,10 +55,9 @@ class TestGeneratedCodeCompiler {
     val pf = schemaCompiler.compileNode(testSchema)
     assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
     // Generate C code from the DFDL schema
-    val codeGeneratorState = pf.generateCode()
     val generatedCodeCompiler = new GeneratedCodeCompiler(pf)
     val rootElementName = "c1"
-    generatedCodeCompiler.compile(rootElementName, codeGeneratorState)
+    generatedCodeCompiler.compile(rootElementName)
     assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
     // Run the executable to parse int32 numbers
     val dp = generatedCodeCompiler.dataProcessor
