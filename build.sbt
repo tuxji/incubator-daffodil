@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import scala.collection.immutable.ListSet
+import sbt.io.Path.flatRebase
 import sbtcc._
+import scala.collection.immutable.ListSet
 
 lazy val genManaged = taskKey[Unit]("Generate managed sources and resources")
 lazy val genProps = taskKey[Seq[File]]("Generate properties scala source")
@@ -90,9 +91,15 @@ lazy val tdmlProc         = Project("daffodil-tdml-processor", file("daffodil-td
                               .settings(commonSettings)
 
 lazy val cli              = Project("daffodil-cli", file("daffodil-cli")).configs(IntegrationTest)
-                              .dependsOn(tdmlProc, sapi, japi, udf % "it->test") // causes sapi/japi to be pulled in to the helper zip/tar
+                              .dependsOn(tdmlProc, sapi, japi, udf % "it->test", runtime2) // causes sapi/japi to be pulled in to the helper zip/tar
                               .settings(commonSettings, nopublish)
-                              .settings(libraryDependencies ++= Dependencies.cli) 
+                              .settings(libraryDependencies ++= Dependencies.cli)
+                              .settings(mappings in Universal ++=
+                                ((runtime2 / Compile / sourceDirectory).value / "c" / "common_runtime" * GlobFilter("*.h")) pair flatRebase("include/")
+                              )
+                              .settings(mappings in Universal ++=
+                                (runtime2 / Compile / ccLinkLibraries).value pair flatRebase("lib/")
+                              )
 
 lazy val udf              = Project("daffodil-udf", file("daffodil-udf")).configs(IntegrationTest)
                               .settings(commonSettings)
@@ -137,7 +144,7 @@ lazy val commonSettings = Seq(
     "-Xfatal-warnings",
     "-Xxml:-coalescing",
     "-Xfuture"
-),
+  ),
   // add scalac options that are version specific
   scalacOptions ++= scalacCrossOptions(scalaVersion.value),
   // Workaround issue that some options are valid for javac, not javadoc.
@@ -191,9 +198,9 @@ lazy val nopublish = Seq(
 )
 
 lazy val usesMacros = Seq(
-  // copies classe and source files into the project that uses macros. Note
+  // copies classes and source files into the project that uses macros. Note
   // that for packageBin, we only copy directories and class files--this
-  // ignores files such a META-INFA/LICENSE and NOTICE that are duplicated and
+  // ignores files such a META-INF/LICENSE and NOTICE that are duplicated and
   // would otherwise cause a conflict
   mappings in (Compile, packageBin) ++= mappings.in(macroLib, Compile, packageBin).value.filter { case (f, _) => f.isDirectory || f.getPath.endsWith(".class") },
   mappings in (Compile, packageSrc) ++= mappings.in(macroLib, Compile, packageSrc).value

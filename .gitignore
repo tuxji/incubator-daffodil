@@ -14,34 +14,25 @@
 # limitations under the License.
 
 #
-# In general we don't want the litter files for every IDE/environment
+# In general we don't want to litter files for every IDE/environment
 # in the Daffodil source tree.
 #
-*.sbt
 !build.sbt
+*.sbt
+.cache
 .cache-main
 .cache-tests
-target
-target/
-lib_managed
-src_managed
-resource_managed
 .history
-.cache
-daffodil-core/errors
-daffodil-lib/errors
-daffodil-lib/bin
-daffodil-propgen/errors
-daffodil-test/errors
-errors
-project/errors
-.~*#
-testData_OnClassPath
-out
 .scala_dependencies
+.~*#
 daffodil-extra/*
-# ignore all emacs backup files
-*~
+errors
+lib_managed
+out
+resource_managed
+src_managed
+target
+testData_OnClassPath
 #
 # For IntelliJ IDEA
 #
@@ -52,15 +43,15 @@ daffodil-extra/*
 .idea_modules
 *.iml
 #
-# FOR EMACS ENSIME
+# For Emacs & ensime
 #
-.ensime_cache
-# these are autosave emacs files
-\#*#
+*~
 .\#*
 .\#.*
+.ensime_cache
+\#*#
 #
-# FOR VIM
+# For vim
 #
 .*.swp
 #
@@ -68,7 +59,19 @@ daffodil-extra/*
 #
 .classpath
 .project
-bin/    
+.settings
 /eclipse-projects
-.settings/
-
+bin
+#
+# For C, Scala Metal, Visual Studio Code & zig cc
+#
+*.a
+*.o
+.bloop
+.metals
+.vscode
+GPATH
+GRTAGS
+GTAGS
+daffodil-runtime2/src/main/c/daffodil
+zig-cache
