@@ -31,7 +31,7 @@
         </xs:appinfo>
     </xs:annotation>
 
-    <xs:element name="parse_int32">
+    <xs:element name="ex_int32">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="e1" type="xs:int"/>

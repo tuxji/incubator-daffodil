@@ -31,6 +31,14 @@ import org.junit.Test
 class TestGeneratedCodeCompiler {
 
   @Test
+  def scratchTest(): Unit = {
+    val generatedCodeCompiler = new GeneratedCodeCompiler(null)
+    val daffodilCache = generatedCodeCompiler.clearDaffodilCache()
+    assert(os.exists(daffodilCache))
+    assert(os.exists(daffodilCache/"c"))
+  }
+
+  @Test
   def compileRunParseInt32(): Unit = {
     // Compile a DFDL schema to parse int32 numbers
     val testSchema = SchemaUtils.dfdlTestSchema(

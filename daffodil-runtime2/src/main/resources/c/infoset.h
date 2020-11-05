@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef COMMON_RUNTIME_H
-#define COMMON_RUNTIME_H
+#ifndef INFOSET_H
+#define INFOSET_H
 
 #include <stddef.h> // for ptrdiff_t
 #include <stdint.h> // for int32_t
@@ -114,4 +114,4 @@ typedef struct VisitEventHandler
 extern const char *walkInfoset(const VisitEventHandler *handler,
                                const InfosetBase *      infoset);
 
-#endif // COMMON_RUNTIME_H
+#endif // INFOSET_H

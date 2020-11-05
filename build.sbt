@@ -56,7 +56,7 @@ lazy val runtime2         = Project("daffodil-runtime2", file("daffodil-runtime2
                               .settings(
                                 Compile / ccTargets := ListSet(runtime2StaticLib),
                                 Compile / cSources  := Map(
-                                  runtime2StaticLib -> ((Compile / sourceDirectory).value / "c" / "common_runtime" * GlobFilter("*.c")).get,
+                                  runtime2StaticLib -> ((Compile / resourceDirectory).value / "c" * GlobFilter("*.c")).get,
                                 ),
                                 Compile / cFlags := (Compile / cFlags).value.withDefaultValue(Seq(
                                   "-g",

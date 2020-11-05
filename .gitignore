@@ -73,5 +73,5 @@ bin
 GPATH
 GRTAGS
 GTAGS
-daffodil-runtime2/src/main/c/daffodil
+daffodil-runtime2/src/main/resources/daffodil
 zig-cache

@@ -15,13 +15,26 @@
  * limitations under the License.
  */
 
-#ifndef ROOT_INFOSET_H
-#define ROOT_INFOSET_H
+#ifndef GENERATED_CODE_H
+#define GENERATED_CODE_H
 
-#include "common_runtime.h" // for InfosetBase
+#include "infoset.h" // for InfosetBase
+#include <stdint.h>  // for int32_t
 
-// Return the root of an infoset to be used for parsing or unparsing
+// Define some infoset structures
 
-extern InfosetBase *rootInfoset();
+typedef struct c2
+{
+    InfosetBase _base;
+    int32_t     e2;
+    int32_t     e3;
+} c2;
 
-#endif // ROOT_INFOSET_H
+typedef struct c1
+{
+    InfosetBase _base;
+    int32_t     e1;
+    c2          c2;
+} c1;
+
+#endif // GENERATED_CODE_H

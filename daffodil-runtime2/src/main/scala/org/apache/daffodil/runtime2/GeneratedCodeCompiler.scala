@@ -17,6 +17,10 @@
 
 package org.apache.daffodil.runtime2
 
+import java.nio.file.Files
+import java.nio.file.Path
+
+import dev.dirs.ProjectDirectories
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.compiler.ProcessorFactory
 import org.apache.daffodil.dsom.SchemaDefinitionError
@@ -29,50 +33,66 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
   private lazy val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
 
   /**
+   * Creates or updates a Daffodil cache directory for holding C source files
+   * and native machine binary files.
+   */
+  def clearDaffodilCache(): os.Path = {
+    // Look up our cache directory's location on Unix, MacOS, or Windows
+    val directories = ProjectDirectories.from("org", "Apache Software Foundation", "Daffodil")
+    val daffodilCache = Path.of(directories.cacheDir)
+
+    // Delete code subdirectory to avoid any mismatched versions
+    val codeDir = daffodilCache.resolve("c")
+    if (Files.exists(codeDir))
+      FileUtils.deleteDirectory(codeDir.toFile)
+
+    // Copy C source files from our resources into code subdirectory
+    val codeResource = Path.of(Misc.getRequiredResource("c"))
+    FileUtils.copyDirectory(codeResource.toFile, codeDir.toFile)
+
+    // Our cache directory is now ready for use
+    os.Path(daffodilCache)
+  }
+
+  /**
    * Generates C code from the processor factory's compiled DFDL schema to
-   * parse or unparse the given root element, compiles the generated C code,
-   * and links it with the runtime2 library to build an executable file.
+   * parse or unparse the given root element, compiles the generated C code
+   * along with C source files from our resources, and builds an executable file.
    */
   def compile(rootElementName: String): Unit = {
-    val codeGeneratorState = new CodeGeneratorState()
-    Runtime2CodeGenerator.generateCode(pf.sset.root.document, codeGeneratorState)
+    // Set up some paths we'll need
+    executableFile = null
+    val wd = clearDaffodilCache()
+    val codeDir = wd/"c"
+    val generatedCodeHeader = codeDir/"generated_code.h"
+    val generatedCodeFile = codeDir/"generated_code.c"
+    val exe = codeDir/"daffodil"
 
-    val compiler = "cc"
-    val location = Option(this.getClass.getProtectionDomain.getCodeSource) flatMap (x => Option(x.getLocation))
-    val wd = if (os.exists(os.pwd/"daffodil-runtime2"))
-      os.pwd
-    else if (os.exists(os.pwd/os.up/"daffodil-runtime2"))
-      os.pwd/os.up
-    else if (location.isDefined)
-      os.Path(FileUtils.toFile(location.get))/os.up/os.up
-    else
-      os.pwd
-    val includeDir = if (os.exists(wd/"include"))
-      wd/"include"
-    else
-      wd/"daffodil-runtime2"/"src"/"main"/"c"/"common_runtime"
-    val libDir = if (os.exists(wd/"lib"))
-      wd/"lib"
-    else
-      wd/"daffodil-runtime2"/"target"/"streams"/"compile"/"ccTargetMap"/"_global"/"streams"/"compile"/"sbtcc.Library"
-    val generatedCodeHeader = codeGeneratorState.viewCodeHeader
-    val generatedCodeFile = codeGeneratorState.viewCodeFile(rootElementName)
-    val tempDir = os.temp.dir()
-    val tempCodeHeader = tempDir/"generated_code.h"
-    val tempCodeFile = tempDir/"generated_code.c"
-    val depLib = if (isWindows) "-largp" else "-lpthread"
-    val tempExe = tempDir/"daffodil"
     try {
-      executableFile = null
-      os.write(tempCodeHeader, generatedCodeHeader)
-      os.write(tempCodeFile, generatedCodeFile)
-      val result = os.proc(compiler, "-I", includeDir, tempCodeFile, "-L", libDir, "-lruntime2", "-lmxml", depLib, "-o", tempExe).call(cwd = tempDir, stderr = Pipe)
+      // Generate C code from the compiled DFDL schema
+      val codeGeneratorState = new CodeGeneratorState()
+      Runtime2CodeGenerator.generateCode(pf.sset.root.document, codeGeneratorState)
+      val codeHeaderText = codeGeneratorState.viewCodeHeader
+      val codeFileText = codeGeneratorState.viewCodeFile(rootElementName)
+      os.write(generatedCodeHeader, codeHeaderText)
+      os.write(generatedCodeFile, codeFileText)
+
+      // Assemble the compiler's command line arguments
+      val compiler = if (true) List("zig", "cc") else List("cc")
+      val files = os.list(codeDir).filter(_.ext == "c")
+      val libs = List("-lmxml", if (isWindows) "-largp" else "-lpthread")
+
+      // Call the compiler
+      val result = os.proc(compiler, "-I", codeDir, files, libs, "-o", exe).call(cwd = wd, stderr = Pipe)
+
+      // Print any compiler output and save the executable's path if it was built
       if (!result.out.text.isEmpty || !result.err.text.isEmpty) {
         val sde = new SchemaDefinitionError(None, None, "Unexpected compiler output on stdout: %s on stderr: %s", result.out.text, result.err.text)
         pf.sset.warn(sde)
       }
-      executableFile = tempExe
+      executableFile = exe
     } catch {
+      // Handle any compiler errors
       case e: os.SubprocessException =>
         val sde = new SchemaDefinitionError(None, None, "Error compiling generated code: %s wd: %s", Misc.getSomeMessage(e).get, wd.toString)
         pf.sset.error(sde)

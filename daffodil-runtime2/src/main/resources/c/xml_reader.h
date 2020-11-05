@@ -15,26 +15,26 @@
  * limitations under the License.
  */
 
-#ifndef GENERATED_CODE_H
-#define GENERATED_CODE_H
+#ifndef XML_READER_H
+#define XML_READER_H
 
-#include "common_runtime.h" // for InfosetBase
-#include <stdint.h>         // for int32_t
+#include "infoset.h" // for VisitEventHandler, InfosetBase
+#include <mxml.h>    // for mxml_node_t
+#include <stdio.h>   // for FILE
 
-// Define some infoset structures
+// XMLReader - infoset visitor with methods to read XML
 
-typedef struct c2
+typedef struct XMLReader
 {
-    InfosetBase _base;
-    int32_t     e2;
-    int32_t     e3;
-} c2;
+    const VisitEventHandler handler;
+    FILE *                  stream;
+    InfosetBase *           root;
+    mxml_node_t *           xml;
+    mxml_node_t *           node;
+} XMLReader;
 
-typedef struct c1
-{
-    InfosetBase _base;
-    int32_t     e1;
-    c2          c2;
-} c1;
+// XMLReader methods to pass to walkInfoset method
 
-#endif // GENERATED_CODE_H
+extern const VisitEventHandler xmlReaderMethods;
+
+#endif // XML_READER_H

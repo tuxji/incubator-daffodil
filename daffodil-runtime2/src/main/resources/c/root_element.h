@@ -15,26 +15,13 @@
  * limitations under the License.
  */
 
-#ifndef XML_READER_H
-#define XML_READER_H
+#ifndef ROOT_ELEMENT_H
+#define ROOT_ELEMENT_H
 
-#include "common_runtime.h" // for VisitEventHandler, InfosetBase
-#include <mxml.h>           // for mxml_node_t
-#include <stdio.h>          // for FILE
+#include "infoset.h" // for InfosetBase
 
-// XMLReader - infoset visitor with methods to read XML
+// Return a root element to be used for parsing or unparsing
 
-typedef struct XMLReader
-{
-    const VisitEventHandler handler;
-    FILE *                  stream;
-    InfosetBase *           root;
-    mxml_node_t *           xml;
-    mxml_node_t *           node;
-} XMLReader;
+extern InfosetBase *rootElement();
 
-// XMLReader methods to pass to walkInfoset method
-
-extern const VisitEventHandler xmlReaderMethods;
-
-#endif // XML_READER_H
+#endif // ROOT_ELEMENT_H

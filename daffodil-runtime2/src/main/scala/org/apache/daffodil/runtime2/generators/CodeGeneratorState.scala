@@ -222,8 +222,8 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
       s"""#ifndef GENERATED_CODE_H
          |#define GENERATED_CODE_H
          |
-         |#include "common_runtime.h" // for InfosetBase
-         |#include <stdint.h>         // for int32_t
+         |#include "infoset.h" // for InfosetBase
+         |#include <stdint.h>  // for int32_t
 
          |// Define some infoset structures
          |
@@ -238,8 +238,8 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
     val erds = this.erds.mkString("\n")
     val finalImplementation = this.finalImplementation.mkString("\n")
     val code =
-      s"""#include "generated_code.h"
-         |#include "root_infoset.h" // for rootInfoset
+      s"""#include "generated_code.h" // for generated code structs
+         |#include "root_element.h"   // for rootElement
          |#include <endian.h> // for be32toh, htobe32
          |#include <errno.h>  // for errno
          |#include <stddef.h> // for ptrdiff_t
@@ -253,10 +253,10 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
          |// Metadata singletons
          |
          |$erds
-         |// Return the root of an infoset to be used for parsing or unparsing
+         |// Return a root element to be used for parsing or unparsing
          |
          |InfosetBase *
-         |rootInfoset()
+         |rootElement()
          |{
          |    static $rootElementName    instance;
          |    InfosetBase *root = &instance._base;

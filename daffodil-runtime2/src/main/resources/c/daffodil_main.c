@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-#include "common_runtime.h" // for walkInfoset, InfosetBase, ERD, ...
-#include "daffodil_argp.h"  // for daffodil_cli, parse_daffodil_cli, ...
-#include "root_infoset.h"   // for rootInfoset
-#include "xml_reader.h"     // for xmlReaderMethods, XMLReader
-#include "xml_writer.h"     // for xmlWriterMethods, XMLWriter
-#include <error.h>          // for error
-#include <stdio.h>          // for FILE, perror, fclose, fopen, NULL, stdin
-#include <stdlib.h>         // for exit, EXIT_FAILURE
-#include <string.h>         // for strcmp
+#include "daffodil_argp.h" // for daffodil_cli, parse_daffodil_cli, ...
+#include "infoset.h"       // for walkInfoset, InfosetBase, ERD, ...
+#include "root_element.h"  // for rootElement
+#include "xml_reader.h"    // for xmlReaderMethods, XMLReader
+#include "xml_writer.h"    // for xmlWriterMethods, XMLWriter
+#include <error.h>         // for error
+#include <stdio.h>         // for FILE, perror, fclose, fopen, NULL, stdin
+#include <stdlib.h>        // for exit, EXIT_FAILURE
+#include <string.h>        // for strcmp
 
 // Open a file or exit if it can't be opened
 
@@ -77,7 +77,7 @@ main(int argc, char *argv[])
     {
         FILE *       input = stdin;
         FILE *       output = stdout;
-        InfosetBase *root = rootInfoset();
+        InfosetBase *root = rootElement();
 
         if (daffodil_cli.subcommand == DAFFODIL_PARSE)
         {

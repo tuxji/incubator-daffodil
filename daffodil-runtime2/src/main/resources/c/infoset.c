@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "common_runtime.h"
+#include "infoset.h" // for walkInfoset, VisitEventHandler, ...
 
 // walkInfosetNode - recursively walk an infoset node and call
 // VisitEventHandler methods

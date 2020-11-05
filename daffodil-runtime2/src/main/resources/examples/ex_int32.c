@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include "generated_code.h"
-#include "root_infoset.h" // for rootInfoset
+#include "ex_int32.h"     // for generated code structs
+#include "root_element.h" // for rootElement
 #include <endian.h> // for be32toh, htobe32
 #include <errno.h>  // for errno
 #include <stddef.h> // for ptrdiff_t
@@ -109,10 +109,10 @@ static const ERD c1_ERD = {
     (ERDUnparseSelf)&c1_unparseSelf, // unparseSelf
 };
 
-// Return the root of an infoset to be used for parsing or unparsing
+// Return a root element to be used for parsing or unparsing
 
 InfosetBase *
-rootInfoset()
+rootElement()
 {
     static c1    instance;
     InfosetBase *root = &instance._base;
