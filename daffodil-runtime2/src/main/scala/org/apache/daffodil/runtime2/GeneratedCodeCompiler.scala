@@ -17,6 +17,7 @@
 
 package org.apache.daffodil.runtime2
 
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -55,6 +56,40 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
   }
 
   /**
+   * Searches for any available C compiler on the system.  Tries to find the
+   * compiler given by `CC` if `CC` exists in the environment, then tries to
+   * find any compiler from the following list:
+   *
+   *   - zig cc
+   *   - gcc
+   *   - clang
+   *   - cc
+   *
+   * Returns the first compiler found and splits that compiler's string into a
+   * sequence of strings in case the compiler's string has subcommands or options
+   * separated by spaces.  Returns the empty sequence if no compiler could be
+   * found in the user's PATH.
+   */
+  lazy val pickCompiler: Seq[String] = {
+    val ccEnv = System.getenv("CC")
+    val compilers = Seq(ccEnv, "zig cc", "gcc", "clang", "cc")
+    val path = System.getenv("PATH").split(File.pathSeparatorChar)
+    def inPath(compiler: String): Boolean = {
+      (compiler != null) && {
+        val exec = compiler.takeWhile(_ != ' ')
+        val exec2 = exec + ".exe"
+        path.exists(dir => Files.isExecutable(Path.of(dir, exec))
+          || (isWindows && Files.isExecutable(Path.of(dir, exec2))))
+      }
+    }
+    val compiler = compilers.find(inPath)
+    if (compiler.isDefined)
+      compiler.get.split(' ').toSeq
+    else
+      Seq.empty[String]
+  }
+
+  /**
    * Generates C code from the processor factory's compiled DFDL schema to
    * parse or unparse the given root element, compiles the generated C code
    * along with C source files from our resources, and builds an executable file.
@@ -78,23 +113,35 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
       os.write(generatedCodeFile, codeFileText)
 
       // Assemble the compiler's command line arguments
-      val compiler = if (true) List("zig", "cc") else List("cc")
+      val compiler = pickCompiler
       val files = os.list(codeDir).filter(_.ext == "c")
-      val libs = List("-lmxml", if (isWindows) "-largp" else "-lpthread")
+      val libs = Seq("-lmxml", if (isWindows) "-largp" else "-lpthread")
 
-      // Call the compiler
-      val result = os.proc(compiler, "-I", codeDir, files, libs, "-o", exe).call(cwd = wd, stderr = Pipe)
+      // Call the compiler if it was found
+      if (compiler.nonEmpty) {
+        val result = os.proc(compiler, "-I", codeDir, files, libs, "-o", exe).call(cwd = wd, stderr = Pipe)
 
-      // Print any compiler output and save the executable's path if it was built
-      if (!result.out.text.isEmpty || !result.err.text.isEmpty) {
-        val sde = new SchemaDefinitionError(None, None, "Unexpected compiler output on stdout: %s on stderr: %s", result.out.text, result.err.text)
-        pf.sset.warn(sde)
+        // Print any compiler output as a warning
+        if (result.out.text.nonEmpty || result.err.text.nonEmpty) {
+          val sde = new SchemaDefinitionError(None, None, "Unexpected compiler output on stdout: %s on stderr: %s",
+            result.out.text, result.err.text)
+          pf.sset.warn(sde)
+        }
       }
-      executableFile = exe
+
+      // Save the executable's path if it was built
+      if (os.exists(exe)) {
+        executableFile = exe
+      } else {
+        val sde = new SchemaDefinitionError(None, None, "No executable was built: %s not found",
+          exe.toString)
+        pf.sset.error(sde)
+      }
     } catch {
       // Handle any compiler errors
       case e: os.SubprocessException =>
-        val sde = new SchemaDefinitionError(None, None, "Error compiling generated code: %s wd: %s", Misc.getSomeMessage(e).get, wd.toString)
+        val sde = new SchemaDefinitionError(None, None, "Error compiling generated code: %s wd: %s",
+          Misc.getSomeMessage(e).get, wd.toString)
         pf.sset.error(sde)
     }
   }
