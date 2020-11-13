@@ -17,13 +17,15 @@
 
 package org.apache.daffodil.tdml.processor.runtime2
 
+import dev.dirs.ProjectDirectories
 import org.apache.daffodil.api._
 import org.apache.daffodil.compiler.Compiler
 import org.apache.daffodil.externalvars.Binding
-import org.apache.daffodil.runtime2.GeneratedCodeCompiler
 import org.apache.daffodil.runtime2.ParseResult
+import org.apache.daffodil.runtime2.Runtime2DataProcessor
 import org.apache.daffodil.runtime2.UnparseResult
 import org.apache.daffodil.tdml.processor._
+import org.apache.daffodil.xml.QName
 import org.apache.daffodil.xml.XMLUtils
 
 import scala.xml.Node
@@ -89,7 +91,6 @@ final class TDMLDFDLProcessorFactory private(
   override def setDistinguishedRootNode(name: String, namespace: String): Unit =
     compiler = compiler.withDistinguishedRootNode(name, namespace)
 
-  // We're doing to replace this method with different code.
   // Return result is a TDML.CompileResult - so it's the result
   // of compiling the schema for the test.
   override def getProcessor(
@@ -97,19 +98,30 @@ final class TDMLDFDLProcessorFactory private(
     useSerializedProcessor: Boolean,
     optRootName: Option[String] = None,
     optRootNamespace: Option[String] = None): TDML.CompileResult = {
+
+    // Compile the DFDL schema into a ProcessorFactory
     val pf = compiler.compileSource(schemaSource, optRootName, optRootNamespace)
     val res = if (pf.isError) {
       Left(pf.getDiagnostics) // DFDL schema compilation diagnostics
     } else {
-      // How can we move some of these calls to ProcessorFactory with tunable runtime = "runtime2"?
-      val rootElementName = optRootName.getOrElse("FIXME")
-      val generatedCodeCompiler = new GeneratedCodeCompiler(pf)
-      generatedCodeCompiler.compile(rootElementName)
-      val compileResult = if (pf.isError) {
-        Left(pf.getDiagnostics) // C code compilation diagnostics
+      // Create a CodeGenerator from the DFDL schema for the C language
+      val generator = pf.forLanguage("c")
+
+      // Generate the C source code in our cache directory
+      val rootNS = QName.refQNameFromExtendedSyntax(optRootName.getOrElse("")).toOption
+      val directories = ProjectDirectories.from("org", "Apache Software Foundation", "Daffodil")
+      val outputDir = generator.generateCode(rootNS, directories.cacheDir)
+
+      // Compile the generated code into an executable
+      val executable = generator.compileCode(outputDir)
+
+      // Summarize the result of compiling the schema for the test
+      val compileResult = if (generator.isError) {
+        Left(generator.getDiagnostics) // C code compilation diagnostics
       } else {
-        val dp = new Runtime2TDMLDFDLProcessor(generatedCodeCompiler)
-        Right((pf.getDiagnostics, dp))
+        // Create a processor for running the test using the executable
+        val processor = new Runtime2TDMLDFDLProcessor(executable)
+        Right((generator.getDiagnostics, processor))
       }
       compileResult
     }
@@ -119,16 +131,16 @@ final class TDMLDFDLProcessorFactory private(
 }
 
 /**
- * Delegates all execution, error gathering, error access to the Runtime2DataProcessor object.
+ * Delegates all execution, error gathering, error access to the [[Runtime2DataProcessor]].
  * The responsibility of this class is just for TDML matching up. That is dealing with TDML
  * XML Infosets, feeding to the unparser, creating XML from the result created by the
- * Runtime2DataProcessor object. All the "real work" is done by generatedCodeCompiler.dataProcessor.
+ * [[Runtime2DataProcessor]]. All the "real work" is done by [[Runtime2DataProcessor]].
  */
-class Runtime2TDMLDFDLProcessor(generatedCodeCompiler: GeneratedCodeCompiler) extends TDMLDFDLProcessor {
+class Runtime2TDMLDFDLProcessor(executable: os.Path) extends TDMLDFDLProcessor {
 
   override type R = Runtime2TDMLDFDLProcessor
 
-  private val dataProcessor = generatedCodeCompiler.dataProcessor
+  private val dataProcessor = new Runtime2DataProcessor(executable)
   private var anyErrors: Boolean = false
   private var diagnostics: Seq[Diagnostic] = Nil
 
@@ -152,34 +164,16 @@ class Runtime2TDMLDFDLProcessor(generatedCodeCompiler: GeneratedCodeCompiler) ex
   override def setExternalDFDLVariables(externalVarBindings: Seq[Binding]): Unit = ???
   override def withExternalDFDLVariables(externalVarBindings: Seq[Binding]): Runtime2TDMLDFDLProcessor = this
 
-  // Actually run the C code and save any errors to be returned here
+  // Save any errors from running the C code here to be returned later
   override def isError: Boolean = anyErrors
   override def getDiagnostics: Seq[Diagnostic] = diagnostics
 
-  // This part will change a lot (it will execute C code instead).
-  // Whatever the parse produces needs to be converted into XML for comparison.
-  // We'll need a way to convert, say, a C struct to XML, and XML to C struct.
-  // The C code will need a bunch of toXML methods so it can produce output
-  // for comparison.
+  // Run the C code, collect and save the infoset with any errors and
+  // diagnostics, and return a [[TDMLParseResult]] summarizing the result.
+  // The C code will run in a subprocess, parse the input stream, write
+  // an XML infoset on its standard output, and write any error messages
+  // on its standard output (all done in [[Runtime2DataProcessor.parse]]).
   override def parse(is: java.io.InputStream, lengthLimitInBits: Long): TDMLParseResult = {
-    // We will run the generated and compiled C code, collect and save any errors
-    // and diagnostics to be returned in isError and getDiagnostics, and build an
-    // infoset.  Our context here is TDML-related, so we need to move that functionality
-    // to something generic that we call from here, you're saying.  I got it.  So we
-    // put that more generic "RunGeneratedCode" functionality in runtime2 too... in
-    // another package, not parser, maybe runtime2 itself?  Should we call this generic
-    // class RuntimeState?  Yes, get rid of PState.
-
-    // Call the C program via subprocess.  Have it parse the input stream and
-    // return the XML result on its standard output.  Errors and diagnostics
-    // can come back via standard error.
-    // Or: define a result object structure (XML-based probably) that includes
-    // both infoset and errors/diagnostics.  Segfaults probably still will generate
-    // something on stderr.  What should diags/errors look like?  text lines, XML?
-    // difficult to expect XML, but suddenly read segfault output or other output.
-    // Start diags with recognizable prefix that tells us our runtime code made them
-    // lines without that prefix are captured as generic errors
-
     // TODO: pass lengthLimitInBits to the C program to tell it how big the data is
     val pr = dataProcessor.parse(is)
     anyErrors = pr.isError
@@ -187,6 +181,11 @@ class Runtime2TDMLDFDLProcessor(generatedCodeCompiler: GeneratedCodeCompiler) ex
     new Runtime2TDMLParseResult(pr)
   }
 
+  // Run the C code, collect and save the unparsed data with any errors and
+  // diagnostics, and return a [[TDMLUnparseResult]] summarizing the result.
+  // The C code will run in a subprocess, unparse the input stream, write
+  // the unparsed data on its standard output, and write any error messages
+  // on its standard output (all done in [[Runtime2DataProcessor.unparse]]).
   override def unparse(infosetXML: scala.xml.Node, outStream: java.io.OutputStream): TDMLUnparseResult = {
     val tempDir = null
     val tempInputFile = XMLUtils.convertNodeToTempFile(infosetXML, tempDir)

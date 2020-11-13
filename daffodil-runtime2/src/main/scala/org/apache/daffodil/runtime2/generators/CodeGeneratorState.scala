@@ -17,7 +17,6 @@
 
 package org.apache.daffodil.runtime2.generators
 
-import org.apache.daffodil.api.DFDL
 import org.apache.daffodil.dpath.NodeInfo
 import org.apache.daffodil.dpath.NodeInfo.PrimType
 import org.apache.daffodil.dsom.ElementBase
@@ -28,7 +27,7 @@ import scala.collection.mutable
 /**
  * Builds up the state of generated code.
  */
-class CodeGeneratorState extends DFDL.CodeGeneratorState {
+class CodeGeneratorState {
   private val structs = mutable.Stack[ComplexCGState]()
   private val prototypes = mutable.ArrayBuffer[String]()
   private val erds = mutable.ArrayBuffer[String]()
@@ -216,7 +215,7 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
     structs.top.declarations += s"    $definition ${child.name};"
   }
 
-  def viewCodeHeader: String = {
+  def generateCodeHeader: String = {
     val structs = finalStructs.mkString("\n")
     val header =
       s"""#ifndef GENERATED_CODE_H
@@ -233,7 +232,7 @@ class CodeGeneratorState extends DFDL.CodeGeneratorState {
     header
   }
 
-  def viewCodeFile(rootElementName: String): String = {
+  def generateCodeFile(rootElementName: String): String = {
     val prototypes = this.prototypes.mkString("\n")
     val erds = this.erds.mkString("\n")
     val finalImplementation = this.finalImplementation.mkString("\n")

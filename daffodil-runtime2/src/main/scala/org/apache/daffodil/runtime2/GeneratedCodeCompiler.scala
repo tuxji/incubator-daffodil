@@ -107,8 +107,8 @@ class GeneratedCodeCompiler(pf: ProcessorFactory) {
       // Generate C code from the compiled DFDL schema
       val codeGeneratorState = new CodeGeneratorState()
       Runtime2CodeGenerator.generateCode(pf.sset.root.document, codeGeneratorState)
-      val codeHeaderText = codeGeneratorState.viewCodeHeader
-      val codeFileText = codeGeneratorState.viewCodeFile(rootElementName)
+      val codeHeaderText = codeGeneratorState.generateCodeHeader
+      val codeFileText = codeGeneratorState.generateCodeFile(rootElementName)
       os.write(generatedCodeHeader, codeHeaderText)
       os.write(generatedCodeFile, codeFileText)
 

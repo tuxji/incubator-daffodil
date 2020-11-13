@@ -27,6 +27,7 @@ import org.apache.daffodil.infoset.InfosetInputter
 import org.apache.daffodil.infoset.InfosetOutputter
 import org.apache.daffodil.processors.Failure
 import org.apache.daffodil.io.InputSourceDataInputStream
+import org.apache.daffodil.xml.RefQName
 
 /**
  * This file contains traits that define an abstract API that any DFDL processor
@@ -106,7 +107,7 @@ object DFDL {
     def setExternalDFDLVariable(name: String, namespace: String, value: String): Unit
 
     /**
-     * Compilation returns a parser factory, which must be interrogated for diagnostics
+     * Compilation returns a [[ProcessorFactory]], which must be interrogated for diagnostics
      * to see if compilation was successful or not.
      */
     def compileSource(
@@ -118,7 +119,8 @@ object DFDL {
   }
 
   /**
-   * The point of processor factory is to allow compilation of the path expression.
+   * The point of [[ProcessorFactory]] is to allow compilation of the path expression
+   * and/or generation of source code to process data matching the compiled schema
    */
   trait ProcessorFactory extends WithDiagnostics {
 
@@ -142,11 +144,41 @@ object DFDL {
     @deprecated("Use arguments to Compiler.compileSource or compileFile.", "2.6.0")
     def setDistinguishedRootNode(name: String, namespace: String = null): Unit
 
+    /**
+     * Returns a [[DataProcessor]] to process data matching a compiled XPath expression
+     * @param xpath XPath expression in DFDL schema that data should match (you can use only "/" at this time)
+     */
     def onPath(xpath: String): DataProcessor
+
+    /**
+     * Returns a [[CodeGenerator]] to generate source code that processes data matching a DFDL schema
+     * @param language source language for generated code (you can use only "c" at this time)
+     */
+    def forLanguage(language: String): CodeGenerator
+  }
+
+  /**
+   * Source code generation and compilation is performed with a language-specific [[CodeGenerator]],
+   * which must be interrogated for diagnostics to see if the method was successful or not.
+   */
+  trait CodeGenerator extends WithDiagnostics {
+    /**
+     * Generates language-specific code to parse or unparse data matching a DFDL schema
+     * @param rootNS one of the top-level elements of the DFDL schema (if not supplied, uses first top-level element)
+     * @param outputDir output directory in which to generate code
+     * @return path of output directory containing generated code
+     */
+    def generateCode(rootNS: Option[RefQName], outputDir: String): os.Path
+
+    /**
+     * Compiles the generated language-specific code so it can be used by a TDML test or something else
+     * @param outputDir path of output directory containing generated code
+     * @return path of executable built from generated code
+     */
+    def compileCode(outputDir: os.Path): os.Path
   }
 
   trait DataProcessorBase {
-
     /**
      * Returns a data processor with all the same state, but the validation mode changed to that of the argument.
      *
@@ -202,14 +234,6 @@ object DFDL {
     def parse(is: java.io.InputStream): Unit
     def parse(in: InputSourceDataInputStream): Unit
     def parse(ab: Array[Byte]): Unit
-  }
-
-  trait CodeGeneratorState {
-    // Extended by runtime2's CodeGeneratorState class but contains no
-    // methods to be implemented.  If we decide to move
-    // daffodil-core's runtime2 classes to daffodil-runtime2, then we
-    // will define a CodeGeneratorState API in this trait and
-    // implement the methods in runtime2's CodeGeneratorState class.
   }
 
   trait ParseResult extends Result with WithDiagnostics {

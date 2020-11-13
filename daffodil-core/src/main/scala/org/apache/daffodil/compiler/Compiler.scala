@@ -26,6 +26,7 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.ZipException
 
 import scala.collection.immutable.Queue
+import scala.util.Try
 import scala.xml.Node
 import org.apache.daffodil.api.DFDL
 import org.apache.daffodil.api.DaffodilSchemaSource
@@ -107,6 +108,27 @@ final class ProcessorFactory private(
   def getDiagnostics = diagnostics
 
   override def onPath(xpath: String) = sset.onPath(xpath)
+
+  override def forLanguage(language: String): DFDL.CodeGenerator = {
+    Assert.usage(!isError)
+
+    // Do a poor man's pluggable code generator implementation - we can replace
+    // it after we observe how the validator SPI evolves and wait for our
+    // requirements to become clearer
+    val className = language match {
+      case "c" => "org.apache.daffodil.runtime2.CodeGenerator"
+      case _ => s"code generator; source language $language is not supported"
+    }
+    import scala.language.existentials // Needed to make next line compile
+    val clazz = Try(Class.forName(className))
+    val constructor = clazz.map { _.getDeclaredConstructor(sset.root.getClass) }
+    val tryInstance = constructor.map { _.newInstance(sset.root).asInstanceOf[DFDL.CodeGenerator] }
+    val codeGenerator = tryInstance.recover {
+      case ex => throw new InvalidParserException("Error creating " + className, ex)
+    }.get
+
+    codeGenerator
+  }
 
   override def isError = sset.isError
 

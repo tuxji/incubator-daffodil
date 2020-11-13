@@ -47,16 +47,22 @@ lazy val runtime1         = Project("daffodil-runtime1", file("daffodil-runtime1
                               .dependsOn(io, lib % "test->test", udf, macroLib % "compile-internal, test-internal")
                               .settings(commonSettings, usesMacros)
 
-val runtime2StaticLib     = Library("libruntime2.a")
+val runtime2CFiles        = Library("libruntime2.a")
 lazy val runtime2         = Project("daffodil-runtime2", file("daffodil-runtime2")).configs(IntegrationTest)
                               .enablePlugins(CcPlugin)
                               .dependsOn(core, core % "test->test", tdmlProc)
                               .settings(commonSettings)
                               .settings(publishArtifact in (Compile, packageDoc) := false)
                               .settings(
-                                Compile / ccTargets := ListSet(runtime2StaticLib),
+                                Compile / ccTargets := ListSet(runtime2CFiles),
                                 Compile / cSources  := Map(
-                                  runtime2StaticLib -> ((Compile / resourceDirectory).value / "c" * GlobFilter("*.c")).get,
+                                  runtime2CFiles -> (
+                                    ((Compile / resourceDirectory).value / "c" * GlobFilter("*.c")).get() ++
+                                    ((Compile / resourceDirectory).value / "examples" * GlobFilter("*.c")).get()
+                                  )
+                                ),
+                                Compile / cIncludeDirectories := Map(
+                                  runtime2CFiles -> Seq((Compile / resourceDirectory).value / "c")
                                 ),
                                 Compile / cFlags := (Compile / cFlags).value.withDefaultValue(Seq(
                                   "-g",

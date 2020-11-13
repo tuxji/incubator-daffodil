@@ -35,7 +35,6 @@ import org.apache.daffodil.processors.parsers.ParseError
 import org.apache.daffodil.processors.unparsers.UnparseError
 import org.apache.daffodil.util.Maybe
 import org.apache.daffodil.util.Maybe.Nope
-import os.Pipe
 
 /**
  * Effectively a scala proxy object that does its work via the underlying C-code.
@@ -43,11 +42,7 @@ import os.Pipe
  * walk infoset, generate XML for use by TDML tests.
  */
 class Runtime2DataProcessor(executableFile: os.Path) extends DFDL.DataProcessorBase {
-  /**
-   * Returns a data processor with all the same state, but the validation mode changed to that of the argument.
-   *
-   * Note that the default validation mode is "off", that is, no validation is performed.
-   */
+
   override def withValidationMode(mode: ValidationMode.Type): DFDL.DataProcessor = ???
 
   override def withTunable(name: String, value: String): DFDL.DataProcessor = ???
@@ -91,7 +86,7 @@ class Runtime2DataProcessor(executableFile: os.Path) extends DFDL.DataProcessorB
     val outfile = tempDir/"outfile"
     try {
       os.write(infile, input)
-      val result = os.proc(executableFile, "parse", "-I", "xml", "-o", outfile, infile).call(cwd = tempDir, stderr = Pipe)
+      val result = os.proc(executableFile, "parse", "-I", "xml", "-o", outfile, infile).call(cwd = tempDir, stderr = os.Pipe)
       if (result.out.text.isEmpty && result.err.text.isEmpty) {
         val parseResult = new ParseResult(outfile, Success)
         parseResult
@@ -125,7 +120,7 @@ class Runtime2DataProcessor(executableFile: os.Path) extends DFDL.DataProcessorB
     val outfile = tempDir/"outfile"
     try {
       os.write(infile, input)
-      val result = os.proc(executableFile, "unparse", "-I", "xml", "-o", outfile, infile).call(cwd = tempDir, stderr = Pipe)
+      val result = os.proc(executableFile, "unparse", "-I", "xml", "-o", outfile, infile).call(cwd = tempDir, stderr = os.Pipe)
       val finalBitPos0b = os.size(outfile) * 8 // File sizes are bytes, so must multiply to get final position in bits
       os.read.stream(outfile).writeBytesTo(output)
       if (result.out.text.isEmpty && result.err.text.isEmpty) {

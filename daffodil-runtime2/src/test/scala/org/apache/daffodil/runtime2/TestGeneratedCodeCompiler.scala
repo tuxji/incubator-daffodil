@@ -24,6 +24,7 @@ import org.apache.daffodil.infoset.DIComplex
 import org.apache.daffodil.infoset.TestInfoset
 import org.apache.daffodil.util.Misc
 import org.apache.daffodil.util.SchemaUtils
+import org.apache.daffodil.xml.QName
 import org.junit.Test
 
 // Now that we can run TDML tests with runtime2, this test's remaining
@@ -32,10 +33,35 @@ class TestGeneratedCodeCompiler {
 
   @Test
   def scratchTest(): Unit = {
-    val generatedCodeCompiler = new GeneratedCodeCompiler(null)
-    val daffodilCache = generatedCodeCompiler.clearDaffodilCache()
-    assert(os.exists(daffodilCache))
-    assert(os.exists(daffodilCache/"c"))
+    // Compile a DFDL schema to parse int32 numbers
+    val testSchema = SchemaUtils.dfdlTestSchema(
+        <xs:include schemaLocation="org/apache/daffodil/xsd/DFDLGeneralFormat.dfdl.xsd"/>,
+        <dfdl:format representation="binary" ref="GeneralFormat"/>,
+      <xs:element name="c1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="e1" type="xs:int"/>
+            <xs:element name="c2">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="e2" type="xs:int"/>
+                  <xs:element name="e3" type="xs:int"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>)
+    val pf = Compiler().compileNode(testSchema)
+    assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    val cg = pf.forLanguage("c")
+    val outputDir = cg.generateCode(QName.refQNameFromExtendedSyntax("c1").toOption, "/tmp")
+    assert(!cg.isError, cg.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    assert(os.exists(outputDir))
+    assert(os.exists(outputDir/"c"/"generated_code.c"))
+    val exe = cg.compileCode(outputDir)
+    assert(!cg.isError, cg.getDiagnostics.map(_.getMessage()).mkString("\n"))
+    assert(os.exists(exe))
   }
 
   @Test
