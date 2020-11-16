@@ -50,7 +50,11 @@ class CodeGenerator(root: Root) extends DFDL.CodeGenerator {
     val outputDir = os.Path(Path.of(outputDirArg).toAbsolutePath)
     val codeDir = outputDir/"c"
 
-    // Copy C source files from our resource directory to our code subdirectory
+    // Ensure our output directory exists while our code subdirectory does not
+    os.makeDir.all(outputDir)
+    os.remove.all(codeDir)
+
+    // Copy our resource directory and all its C source files to our code subdirectory
     val resourceUri = Misc.getRequiredResource("/c")
     val fileSystem = if (resourceUri.getScheme == "jar")
       FileSystems.newFileSystem(resourceUri, Collections.emptyMap(), null)
@@ -58,7 +62,6 @@ class CodeGenerator(root: Root) extends DFDL.CodeGenerator {
       null
     try {
       val resourceDir = os.Path(if (fileSystem != null) fileSystem.getPath("/c") else Path.of(resourceUri))
-      os.remove.all(codeDir)
       os.copy(resourceDir, codeDir)
     }
     finally
@@ -84,6 +87,7 @@ class CodeGenerator(root: Root) extends DFDL.CodeGenerator {
   // Compiles any C source files inside a "c" subdirectory of the given output directory.
   // Returns the path of the newly created executable to use in TDML tests or something else.
   override def compileCode(outputDir: os.Path): os.Path = {
+    // Get the paths of the code subdirectory and the executable we will build
     val codeDir = outputDir/"c"
     val exe = codeDir/"daffodil"
 
@@ -96,7 +100,8 @@ class CodeGenerator(root: Root) extends DFDL.CodeGenerator {
       // Call the compiler if it was found.  We run the compiler in the output directory,
       // not in the "c" subdirectory, in order to let the compiler (which might be "zig cc")
       // cache/reuse previously built files (which might be in a "zig_cache" subdirectory).
-      // We can't let "zig_cache" be put into "c" because we always remove and recreate "c".
+      // We can't let "zig_cache" be put into "c" because we always remove and re-generate
+      // everything in "c" from scratch.
       if (compiler.nonEmpty) {
         val result = os.proc(compiler, "-I", codeDir, files, libs, "-o", exe).call(cwd = outputDir, stderr = os.Pipe)
 
@@ -111,7 +116,7 @@ class CodeGenerator(root: Root) extends DFDL.CodeGenerator {
         error("Error compiling generated code: %s wd: %s", Misc.getSomeMessage(e).get, outputDir.toString)
     }
 
-    // Return the path of the executable if it was built
+    // Report any failure to build the executable as an error
     if (!os.exists(exe)) error("No executable was built: %s", exe.toString)
     exe
   }
