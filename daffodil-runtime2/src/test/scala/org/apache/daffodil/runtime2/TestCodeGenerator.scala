@@ -50,8 +50,7 @@ class TestCodeGenerator {
       </xs:complexType>
     </xs:element>)
 
-  @Test
-  def forLanguageC_success(): Unit = {
+  @Test def test_forLanguageC_success(): Unit = {
     // Create a ProcessorFactory from the test schema
     val pf = Compiler().compileNode(testSchema)
     assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
@@ -61,8 +60,7 @@ class TestCodeGenerator {
     assert(!cg.isError, cg.getDiagnostics.map(_.getMessage()).mkString("\n"))
   }
 
-  @Test
-  def forLanguage_error(): Unit = {
+  @Test def test_forLanguage_error(): Unit = {
     // Create a ProcessorFactory from the test schema
     val pf = Compiler().compileNode(testSchema)
     assert(!pf.isError, pf.getDiagnostics.map(_.getMessage()).mkString("\n"))
@@ -74,8 +72,7 @@ class TestCodeGenerator {
     assert(e.getMessage.contains("source language vhld is not supported"))
   }
 
-  @Test
-  def generateCode_success(): Unit = {
+  @Test def test_generateCode_success(): Unit = {
     // Create a ProcessorFactory and CodeGenerator from the test schema
     val pf = Compiler().compileNode(testSchema)
     val cg = pf.forLanguage("c")
@@ -90,8 +87,7 @@ class TestCodeGenerator {
     os.remove.all(outputDir)
   }
 
-  @Test
-  def compileCode_success(): Unit = {
+  @Test def test_compileCode_success(): Unit = {
     // Create a CodeGenerator and generate code from the test schema
     val pf = Compiler().compileNode(testSchema)
     val cg = pf.forLanguage("c")
@@ -106,8 +102,7 @@ class TestCodeGenerator {
     os.remove.all(outputDir)
   }
 
-  @Test
-  def parse_success(): Unit = {
+  @Test def test_parse_success(): Unit = {
     // Compile the test schema into a C executable
     val pf = Compiler().compileNode(testSchema)
     val cg = pf.forLanguage("c")
@@ -127,8 +122,7 @@ class TestCodeGenerator {
     os.remove.all(outputDir)
   }
 
-  @Test
-  def unparse_success(): Unit = {
+  @Test def test_unparse_success(): Unit = {
     // Compile the test schema into a C executable
     val pf = Compiler().compileNode(testSchema)
     val cg = pf.forLanguage("c")

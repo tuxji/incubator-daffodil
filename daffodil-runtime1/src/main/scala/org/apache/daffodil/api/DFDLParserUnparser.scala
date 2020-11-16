@@ -151,7 +151,7 @@ object DFDL {
     def onPath(xpath: String): DataProcessor
 
     /**
-     * Returns a [[CodeGenerator]] to generate source code that processes data matching a DFDL schema
+     * Returns a [[CodeGenerator]] to generate code from a DFDL schema to parse or unparse data
      * @param language source language for generated code (you can use only "c" at this time)
      */
     def forLanguage(language: String): CodeGenerator
@@ -159,11 +159,11 @@ object DFDL {
 
   /**
    * Source code generation and compilation is performed with a language-specific [[CodeGenerator]],
-   * which must be interrogated for diagnostics to see if the method was successful or not.
+   * which must be interrogated for diagnostics to see if each call was successful or not.
    */
   trait CodeGenerator extends WithDiagnostics {
     /**
-     * Generates language-specific code to parse or unparse data matching a DFDL schema
+     * Generates language-specific code from a DFDL schema to parse or unparse data
      * @param rootNS one of the top-level elements of the DFDL schema (if not supplied, uses first top-level element)
      * @param outputDir output directory in which to generate code
      * @return path of output directory containing generated code
@@ -171,7 +171,7 @@ object DFDL {
     def generateCode(rootNS: Option[RefQName], outputDir: String): os.Path
 
     /**
-     * Compiles the generated language-specific code so it can be used by a TDML test or something else
+     * Compiles the generated code so it can be used by a TDML test or something else
      * @param outputDir path of output directory containing generated code
      * @return path of executable built from generated code
      */

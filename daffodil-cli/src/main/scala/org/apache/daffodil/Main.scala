@@ -556,7 +556,7 @@ class CLIConf(arguments: Array[String]) extends scallop.ScallopConf(arguments)
       banner("""|Usage: daffodil generate c -s <schema> [-r [{namespace}]<root>]
                 |                           [-c <file>] [outputDir]
                 |
-                |Generate C code to parse or unparse data matching a DFDL schema
+                |Generate C code from a DFDL schema to parse or unparse data
                 |
                 |Generate Options:""".stripMargin)
 
