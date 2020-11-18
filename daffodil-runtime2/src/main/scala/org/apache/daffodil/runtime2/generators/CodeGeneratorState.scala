@@ -71,19 +71,17 @@ class CodeGeneratorState {
   }
 
   private def defineQNameInit(context: ElementBase): String = {
-    val qname = context.namedQName.toQNameString
-    val xmlns = if (context.namedQName.prefix.isDefined) s"xmlns:${context.namedQName.prefix.get}" else "xmlns"
-    val ns = context.namedQName.namespace.toStringOrNullIfNoNS
-    // Optimize away xmlns=ns declaration if possible, although this approach may not be entirely correct
-    val parentOpt = context.enclosingElements.headOption
-    val parentNs = if (parentOpt.isDefined) parentOpt.get.namedQName.namespace.toStringOrNullIfNoNS
-    val qnameInit = if (ns == null || ns == parentNs)
-      s"""    {"$qname"},       // namedQName.name"""
-    else
+    val prefix = context.namedQName.prefix.map(p => s""""$p"""").getOrElse("NULL")
+    val local = context.namedQName.local
+    val nsUri = context.namedQName.namespace.toStringOrNullIfNoNS
+    // Optimize away ns declaration if possible, although this approach may not be entirely correct
+    val parentNsUri = context.enclosingElements.headOption.map(_.namedQName.namespace.toStringOrNullIfNoNS).getOrElse("no-ns")
+    val ns = if (nsUri == null || nsUri == parentNsUri) "NULL" else s""""$nsUri""""
+    val qnameInit =
       s"""    {
-         |        "$qname",              // namedQName.name
-         |        "$xmlns",           // namedQName.xmlns
-         |        "$ns", // namedQName.ns
+         |        $prefix, // namedQName.prefix
+         |        "$local", // namedQName.local
+         |        $ns, // namedQName.ns
          |    },""".stripMargin
     qnameInit
   }
@@ -145,12 +143,12 @@ class CodeGeneratorState {
     val e = child.name
     val initStatement = s"    ${C}_initSelf(&instance->$e);"
     val parseStatement =
-      s"""    if (error_msg == NULL)
+      s"""    if (!error_msg)
          |    {
          |        error_msg = ${C}_parseSelf(&instance->$e, pstate);
          |    }""".stripMargin
     val unparseStatement =
-      s"""    if (error_msg == NULL)
+      s"""    if (!error_msg)
          |    {
          |        error_msg = ${C}_unparseSelf(&instance->$e, ustate);
          |    }""".stripMargin
@@ -238,12 +236,9 @@ class CodeGeneratorState {
     val finalImplementation = this.finalImplementation.mkString("\n")
     val code =
       s"""#include "generated_code.h" // for generated code structs
-         |#include "root_element.h"   // for rootElement
-         |#include <endian.h> // for be32toh, htobe32
-         |#include <errno.h>  // for errno
-         |#include <stddef.h> // for ptrdiff_t
-         |#include <stdio.h>  // for NULL, fread, fwrite, size_t, feof, ferror, FILE
-         |#include <string.h> // for strerror
+         |#include <endian.h>         // for be32toh, htobe32
+         |#include <stddef.h>         // for ptrdiff_t
+         |#include <stdio.h>          // for NULL, fread, fwrite, size_t, FILE
          |
          |// Prototypes needed for compilation
          |
@@ -264,24 +259,6 @@ class CodeGeneratorState {
          |}
          |
          |// Methods to initialize, parse, and unparse infoset nodes
-         |
-         |static const char *
-         |eof_or_error_msg(FILE *stream)
-         |{
-         |    if (feof(stream))
-         |    {
-         |        static const char *error_msg = "Got EOF while expecting more input";
-         |        return error_msg;
-         |    }
-         |    else if (ferror(stream))
-         |    {
-         |        return strerror(errno);
-         |    }
-         |    else
-         |    {
-         |        return NULL;
-         |    }
-         |}
          |
          |$finalImplementation
          |""".stripMargin

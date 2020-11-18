@@ -16,12 +16,49 @@
  */
 
 #include "xml_reader.h"
-#include <errno.h>  // for errno, ERANGE
-#include <limits.h> // for LONG_MAX, LONG_MIN
-#include <mxml.h>   // for mxmlWalkNext, mxmlGetElement, mxmlGetType, ...
-#include <stdint.h> // for int32_t, INT32_MAX, INT32_MIN
-#include <stdlib.h> // for NULL, strtol
-#include <string.h> // for strcmp, strerror
+#include <errno.h>    // for errno
+#include <inttypes.h> // for strtoimax
+#include <mxml.h>     // for mxmlWalkNext, mxmlGetType, mxmlGetElement, ...
+#include <stdint.h>   // for intmax_t, int32_t, INT32_MAX, INT32_MIN
+#include <string.h>   // for strcmp, strlen, strncmp
+
+// Convert an XML element's text to an integer (BSD function not
+// widely available, so roll our own function based on strtoimax)
+
+static intmax_t
+strtonum(const char *numptr, intmax_t minval, intmax_t maxval,
+         const char **errstrp)
+{
+    char *endptr = NULL;
+
+    // Clear errno to detect failure after calling strtoimax
+    errno = 0;
+    const intmax_t value = strtoimax(numptr, &endptr, 10);
+
+    // Report any issues converting the string to a number
+    if (errno != 0)
+    {
+        *errstrp = "Error converting XML data to integer";
+    }
+    else if (endptr == numptr)
+    {
+        *errstrp = "Found no number in XML data";
+    }
+    else if (*endptr != '\0')
+    {
+        *errstrp = "Found non-number characters in XML data";
+    }
+    else if (value < minval || value > maxval || maxval < minval)
+    {
+        *errstrp = "Number in XML data out of range";
+    }
+    else
+    {
+        *errstrp = NULL;
+    }
+
+    return value;
+}
 
 // Read XML data from file before walking infoset
 
@@ -31,25 +68,30 @@ xmlStartDocument(XMLReader *reader)
     // Load the XML data into memory
     reader->xml = mxmlLoadFile(NULL, reader->stream, MXML_OPAQUE_CALLBACK);
     reader->node = reader->xml;
-    if (reader->node == NULL) {
+    if (!reader->node)
+    {
         return "Unable to read XML data from input file";
     }
 
     // Consume the <?xml line if there is one
     const char *name = mxmlGetElement(reader->node);
-    if (name && strncmp(name, "?xml", strlen("?xml")) == 0) {
+    if (name && strncmp(name, "?xml", strlen("?xml")) == 0)
+    {
         do
         {
-            reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
+            reader->node =
+                mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
         } while (mxmlGetType(reader->node) == MXML_OPAQUE);
         name = mxmlGetElement(reader->node);
     }
 
     // Consume a comment if there is one
-    if (name && strncmp(name, "!--", strlen("!--")) == 0) {
+    if (name && strncmp(name, "!--", strlen("!--")) == 0)
+    {
         do
         {
-            reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
+            reader->node =
+                mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
         } while (mxmlGetType(reader->node) == MXML_OPAQUE);
     }
 
@@ -62,12 +104,14 @@ static const char *
 xmlEndDocument(XMLReader *reader)
 {
     // Consume any remaining newlines or whitespace
-    while (mxmlGetType(reader->node) == MXML_OPAQUE) {
+    while (mxmlGetType(reader->node) == MXML_OPAQUE)
+    {
         reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
     }
 
     // Check whether we have consumed all of the XML data
-    if (reader->node != NULL) {
+    if (reader->node)
+    {
         // This code path exits the program - no need to call mxmlDelete
         return "Did not consume all of the XML data";
     }
@@ -85,19 +129,20 @@ static const char *
 xmlStartComplex(XMLReader *reader, const InfosetBase *base)
 {
     // Consume any newlines or whitespace before the element
-    while (mxmlGetType(reader->node) == MXML_OPAQUE) {
+    while (mxmlGetType(reader->node) == MXML_OPAQUE)
+    {
         reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
     }
 
     // Get the element and consume it
     const char *name_from_xml = mxmlGetElement(reader->node);
-    const char *name_from_infoset = base->erd->namedQName.name;
+    const char *name_from_erd = get_erd_name(base->erd);
     reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
 
     // Check whether we are walking both XML data and infoset in lockstep
-    if (name_from_xml && name_from_infoset)
+    if (name_from_xml && name_from_erd)
     {
-        return strcmp(name_from_xml, name_from_infoset) == 0
+        return strcmp(name_from_xml, name_from_erd) == 0
                    ? NULL
                    : "Found mismatch between XML data and infoset";
     }
@@ -123,48 +168,27 @@ static const char *
 xmlInt32Elem(XMLReader *reader, const ERD *erd, int32_t *location)
 {
     // Consume any newlines or whitespace before the element
-    while (mxmlGetType(reader->node) == MXML_OPAQUE) {
+    while (mxmlGetType(reader->node) == MXML_OPAQUE)
+    {
         reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
     }
 
     // Get the element and consume it
     const char *name_from_xml = mxmlGetElement(reader->node);
+    const char *name_from_erd = get_erd_name(erd);
     const char *number_from_xml = mxmlGetOpaque(reader->node);
-    const char *name_from_infoset = erd->namedQName.name;
     reader->node = mxmlWalkNext(reader->node, reader->xml, MXML_DESCEND);
 
     // Check whether we are walking both XML data and infoset in lockstep
-    if (name_from_xml && name_from_infoset)
+    if (name_from_xml && name_from_erd)
     {
-        if (strcmp(name_from_xml, name_from_infoset) == 0)
+        if (strcmp(name_from_xml, name_from_erd) == 0)
         {
-            // Check for errors when reading the 32-bit integer
-            char *      endptr = NULL;
-            errno = 0; // To distinguish success/failure after call
-            const long int value = strtol(number_from_xml, &endptr, 10);
-
-            if ((errno == ERANGE && (value == LONG_MAX || value == LONG_MIN)) ||
-                (errno != 0 && value == 0))
-            {
-                return strerror(errno);
-            }
-            else if (endptr == number_from_xml)
-            {
-                return "No digits were found";
-            }
-            else if (*endptr != '\0')
-            {
-                return "Found further characters after number";
-            }
-            else if (value < INT32_MIN || value > INT32_MAX)
-            {
-                return "Number out of range for int32_t";
-            }
-            else
-            {
-                *location = (int32_t)value;
-                return NULL;
-            }
+            // Check for any errors getting the 32-bit integer
+            const char *errstr = NULL;
+            *location = (int32_t)strtonum(number_from_xml, INT32_MIN, INT32_MAX,
+                                          &errstr);
+            return errstr;
         }
         else
         {

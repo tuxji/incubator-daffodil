@@ -61,7 +61,7 @@ trait BinaryIntegerKnownLengthCodeGenerator {
 
     val initStatement = s"    instance->$fieldName = 0xCDCDCDCD;"
     val parseStatement =
-      s"""    if (error_msg == NULL)
+      s"""    if (!error_msg)
          |    {
          |        char   buffer[4];
          |        size_t count = fread(&buffer, 1, sizeof(buffer), pstate->stream);
@@ -72,7 +72,7 @@ trait BinaryIntegerKnownLengthCodeGenerator {
          |        instance->$fieldName = be32toh(*((uint32_t *)(&buffer)));
          |    }""".stripMargin
     val unparseStatement =
-      s"""    if (error_msg == NULL)
+      s"""    if (!error_msg)
          |    {
          |        union
          |        {

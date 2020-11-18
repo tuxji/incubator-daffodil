@@ -16,6 +16,99 @@
  */
 
 #include "infoset.h" // for walkInfoset, VisitEventHandler, ...
+#include <string.h>  // for memccpy
+
+// get_erd_name, get_erd_xmlns, get_erd_ns - get name and xmlns
+// attribute/value from ERD to use on XML element
+
+const char *
+get_erd_name(const ERD *erd)
+{
+    static char name[9999];
+    char *      next = name;
+    char *      last = name + sizeof(name) - 1;
+
+    if (next && erd->namedQName.prefix)
+    {
+        next = memccpy(next, erd->namedQName.prefix, 0, last - next);
+        if (next)
+        {
+            --next;
+        }
+    }
+    if (next && erd->namedQName.prefix)
+    {
+        next = memccpy(next, ":", 0, last - next);
+        if (next)
+        {
+            --next;
+        }
+    }
+    if (next)
+    {
+        next = memccpy(next, erd->namedQName.local, 0, last - next);
+        if (next)
+        {
+            --next;
+        }
+    }
+    if (!next)
+    {
+        *last = 0;
+    }
+
+    return name;
+}
+
+const char *
+get_erd_xmlns(const ERD *erd)
+{
+    if (erd->namedQName.ns)
+    {
+        static char xmlns[9999];
+        char *      next = xmlns;
+        char *      last = xmlns + sizeof(xmlns) - 1;
+
+        next = memccpy(next, "xmlns", 0, last - next);
+        if (next)
+        {
+            --next;
+        }
+
+        if (next && erd->namedQName.prefix)
+        {
+            next = memccpy(next, ":", 0, last - next);
+            if (next)
+            {
+                --next;
+            }
+        }
+        if (next && erd->namedQName.prefix)
+        {
+            next = memccpy(next, erd->namedQName.prefix, 0, last - next);
+            if (next)
+            {
+                --next;
+            }
+        }
+        if (!next)
+        {
+            *last = 0;
+        }
+
+        return xmlns;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+const char *
+get_erd_ns(const ERD *erd)
+{
+    return erd->namedQName.ns;
+}
 
 // walkInfosetNode - recursively walk an infoset node and call
 // VisitEventHandler methods
@@ -26,7 +119,7 @@ walkInfosetNode(const VisitEventHandler *handler, const InfosetBase *infoNode)
     const char *error_msg = NULL;
 
     // Start visiting the node
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = handler->visitStartComplex(handler, infoNode);
     }
@@ -36,7 +129,7 @@ walkInfosetNode(const VisitEventHandler *handler, const InfosetBase *infoNode)
     const ERD **const childrenERDs = infoNode->erd->childrenERDs;
     const ptrdiff_t * offsets = infoNode->erd->offsets;
 
-    for (size_t i = 0; i < count && error_msg == NULL; i++)
+    for (size_t i = 0; i < count && !error_msg; i++)
     {
         ptrdiff_t  offset = offsets[i];
         const ERD *childERD = childrenERDs[i];
@@ -60,7 +153,7 @@ walkInfosetNode(const VisitEventHandler *handler, const InfosetBase *infoNode)
     }
 
     // End visiting the node
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = handler->visitEndComplex(handler, infoNode);
     }
@@ -75,18 +168,37 @@ walkInfoset(const VisitEventHandler *handler, const InfosetBase *infoset)
 {
     const char *error_msg = NULL;
 
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = handler->visitStartDocument(handler);
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = walkInfosetNode(handler, infoset);
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = handler->visitEndDocument(handler);
     }
 
     return error_msg;
+}
+
+// eof_or_error_msg - check if a stream has its eof or error indicator set
+
+const char *
+eof_or_error_msg(FILE *stream)
+{
+    if (feof(stream))
+    {
+        return "Found eof indicator after reading stream";
+    }
+    else if (ferror(stream))
+    {
+        return "Found error indicator after reading stream";
+    }
+    else
+    {
+        return NULL;
+    }
 }

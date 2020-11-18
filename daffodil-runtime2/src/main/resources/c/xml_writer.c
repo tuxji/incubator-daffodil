@@ -34,7 +34,7 @@ xmlStartDocument(XMLWriter *writer)
 
     mxml_node_t *xml = mxmlNewXML("1.0");
     stack_push(&writer->stack, xml);
-    return xml != NULL ? NULL : "Error making new XML declaration";
+    return xml ? NULL : "Error making new XML declaration";
 }
 
 // Pop completed XML document off stack and write it to stream
@@ -63,17 +63,17 @@ xmlStartComplex(XMLWriter *writer, const InfosetBase *base)
     if (!stack_is_full(&writer->stack))
     {
         mxml_node_t *parent = stack_top(&writer->stack);
-        char *       name = base->erd->namedQName.name;
-        char *       xmlns = base->erd->namedQName.xmlns;
-        char *       ns = base->erd->namedQName.ns;
+        const char * name = get_erd_name(base->erd);
+        const char * xmlns = get_erd_xmlns(base->erd);
         complex = mxmlNewElement(parent, name);
-        if (xmlns != NULL)
+        if (xmlns)
         {
+            const char *ns = get_erd_ns(base->erd);
             mxmlElementSetAttr(complex, xmlns, ns);
         }
         stack_push(&writer->stack, complex);
     }
-    return complex != NULL ? NULL : "Error making new complex element";
+    return complex ? NULL : "Error making new complex element";
 }
 
 // Pop completed complex element off stack
@@ -87,7 +87,7 @@ xmlEndComplex(XMLWriter *writer, const InfosetBase *base)
         complex = stack_pop(&writer->stack);
         (void)base;
     }
-    return complex != NULL ? NULL : "Underflowed the XML stack";
+    return complex ? NULL : "Underflowed the XML stack";
 }
 
 // Write 32-bit integer value as element
@@ -96,19 +96,17 @@ static const char *
 xmlInt32Elem(XMLWriter *writer, const ERD *erd, const int32_t *location)
 {
     mxml_node_t *parent = stack_top(&writer->stack);
-    char *       name = erd->namedQName.name;
-    char *       xmlns = erd->namedQName.xmlns;
-    char *       ns = erd->namedQName.ns;
+    const char * name = get_erd_name(erd);
+    const char * xmlns = get_erd_xmlns(erd);
     mxml_node_t *simple = mxmlNewElement(parent, name);
     int32_t      value = *location;
     mxml_node_t *text = mxmlNewOpaquef(simple, "%i", value);
-    if (xmlns != NULL)
+    if (xmlns)
     {
+        const char *ns = get_erd_ns(erd);
         mxmlElementSetAttr(simple, xmlns, ns);
     }
-    return (simple != NULL && text != NULL)
-               ? NULL
-               : "Error making new int32 simple element";
+    return (simple && text) ? NULL : "Error making new int32 simple element";
 }
 
 // Initialize a struct with our visitor event handler methods

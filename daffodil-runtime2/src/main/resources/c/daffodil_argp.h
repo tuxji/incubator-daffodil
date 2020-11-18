@@ -39,7 +39,7 @@ extern struct daffodil_cli
 
 extern struct daffodil_parse_cli
 {
-    const char *infoset_type;
+    const char *infoset_converter;
     const char *infile;
     const char *outfile;
 } daffodil_parse;
@@ -48,7 +48,7 @@ extern struct daffodil_parse_cli
 
 extern struct daffodil_unparse_cli
 {
-    const char *infoset_type;
+    const char *infoset_converter;
     const char *infile;
     const char *outfile;
 } daffodil_unparse;

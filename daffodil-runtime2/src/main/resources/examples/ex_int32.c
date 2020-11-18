@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-#include "ex_int32.h"     // for generated code structs
-#include "root_element.h" // for rootElement
-#include <endian.h> // for be32toh, htobe32
-#include <errno.h>  // for errno
-#include <stddef.h> // for ptrdiff_t
-#include <stdio.h>  // for NULL, fread, fwrite, size_t, feof, ferror, FILE
-#include <string.h> // for strerror
+#include "ex_int32.h" // for generated code structs
+#include <endian.h>   // for be32toh, htobe32
+#include <stddef.h>   // for ptrdiff_t
+#include <stdio.h>    // for NULL, fread, fwrite, size_t, FILE
 
 // Prototypes needed for compilation
 
@@ -35,7 +32,11 @@ static const char *c1_unparseSelf(const c1 *instance, const UState *ustate);
 // Metadata singletons
 
 static const ERD e1_ERD = {
-    {"ex:e1"},       // namedQName.name
+    {
+        "ex", // namedQName.prefix
+        "e1", // namedQName.local
+        NULL, // namedQName.ns
+    },
     PRIMITIVE_INT32, // typeCode
     0,               // numChildren
     NULL,            // offsets
@@ -46,7 +47,11 @@ static const ERD e1_ERD = {
 };
 
 static const ERD e2_ERD = {
-    {"ex:e2"},       // namedQName.name
+    {
+        "ex", // namedQName.prefix
+        "e2", // namedQName.local
+        NULL, // namedQName.ns
+    },
     PRIMITIVE_INT32, // typeCode
     0,               // numChildren
     NULL,            // offsets
@@ -57,7 +62,11 @@ static const ERD e2_ERD = {
 };
 
 static const ERD e3_ERD = {
-    {"ex:e3"},       // namedQName.name
+    {
+        "ex", // namedQName.prefix
+        "e3", // namedQName.local
+        NULL, // namedQName.ns
+    },
     PRIMITIVE_INT32, // typeCode
     0,               // numChildren
     NULL,            // offsets
@@ -76,7 +85,11 @@ static const ptrdiff_t c2_offsets[2] = {
 static const ERD *c2_childrenERDs[2] = {&e2_ERD, &e3_ERD};
 
 static const ERD c2_ERD = {
-    {"ex:c2"},                       // namedQName.name
+    {
+        "ex", // namedQName.prefix
+        "c2", // namedQName.local
+        NULL, // namedQName.ns
+    },
     COMPLEX,                         // typeCode
     2,                               // numChildren
     c2_offsets,                      // offsets
@@ -96,8 +109,8 @@ static const ERD *c1_childrenERDs[2] = {&e1_ERD, &c2_ERD};
 
 static const ERD c1_ERD = {
     {
-        "ex:c1",              // namedQName.name
-        "xmlns:ex",           // namedQName.xmlns
+        "ex",                 // namedQName.prefix
+        "c1",                 // namedQName.local
         "http://example.com", // namedQName.ns
     },
     COMPLEX,                         // typeCode
@@ -122,24 +135,6 @@ rootElement()
 
 // Methods to initialize, parse, and unparse infoset nodes
 
-static const char *
-eof_or_error_msg(FILE *stream)
-{
-    if (feof(stream))
-    {
-        static const char *error_msg = "Got EOF while expecting more input";
-        return error_msg;
-    }
-    else if (ferror(stream))
-    {
-        return strerror(errno);
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
 static void
 c2_initSelf(c2 *instance)
 {
@@ -152,7 +147,7 @@ static const char *
 c2_parseSelf(c2 *instance, const PState *pstate)
 {
     const char *error_msg = NULL;
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         char   buffer[4];
         size_t count = fread(&buffer, 1, sizeof(buffer), pstate->stream);
@@ -162,7 +157,7 @@ c2_parseSelf(c2 *instance, const PState *pstate)
         }
         instance->e2 = be32toh(*((uint32_t *)(&buffer)));
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         char   buffer[4];
         size_t count = fread(&buffer, 1, sizeof(buffer), pstate->stream);
@@ -179,7 +174,7 @@ static const char *
 c2_unparseSelf(const c2 *instance, const UState *ustate)
 {
     const char *error_msg = NULL;
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         union
         {
@@ -193,7 +188,7 @@ c2_unparseSelf(const c2 *instance, const UState *ustate)
             error_msg = eof_or_error_msg(ustate->stream);
         }
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         union
         {
@@ -222,7 +217,7 @@ static const char *
 c1_parseSelf(c1 *instance, const PState *pstate)
 {
     const char *error_msg = NULL;
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         char   buffer[4];
         size_t count = fread(&buffer, 1, sizeof(buffer), pstate->stream);
@@ -232,7 +227,7 @@ c1_parseSelf(c1 *instance, const PState *pstate)
         }
         instance->e1 = be32toh(*((uint32_t *)(&buffer)));
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = c2_parseSelf(&instance->c2, pstate);
     }
@@ -243,7 +238,7 @@ static const char *
 c1_unparseSelf(const c1 *instance, const UState *ustate)
 {
     const char *error_msg = NULL;
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         union
         {
@@ -257,7 +252,7 @@ c1_unparseSelf(const c1 *instance, const UState *ustate)
             error_msg = eof_or_error_msg(ustate->stream);
         }
     }
-    if (error_msg == NULL)
+    if (!error_msg)
     {
         error_msg = c2_unparseSelf(&instance->c2, ustate);
     }

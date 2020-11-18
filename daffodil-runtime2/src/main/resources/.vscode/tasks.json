@@ -18,7 +18,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "C/C++: gcc build daffodil",
+            "label": "Build daffodil",
             "command": "/usr/bin/gcc",
             "args": [
                 "-Wall",
@@ -31,8 +31,6 @@
                 "examples/",
                 "c/*.c",
                 "examples/ex_int32.c",
-                "-L",
-                ".",
                 "-lmxml",
                 "-lpthread",
                 "-o",

@@ -74,7 +74,7 @@ parse_handler(int key, char *arg, struct argp_state *state)
     switch (key)
     {
     case 'I':
-        parse->infoset_type = arg;
+        parse->infoset_converter = arg;
         break;
 
     case 'o':
@@ -167,7 +167,7 @@ unparse_handler(int key, char *arg, struct argp_state *state)
     switch (key)
     {
     case 'I':
-        unparse->infoset_type = arg;
+        unparse->infoset_converter = arg;
         break;
 
     case 'o':
@@ -250,24 +250,24 @@ static const struct argp daffodil_argp = {
 static error_t
 daffodil_handler(int key, char *arg, struct argp_state *state)
 {
-    struct daffodil_cli *daffodil = state->input;
+    struct daffodil_cli *cli = state->input;
     error_t              status = 0;
 
     switch (key)
     {
     case 'v':
-        daffodil->verbosity++;
+        cli->verbosity++;
         break;
 
     case ARGP_KEY_ARG:
         if (strcmp(arg, "parse") == 0)
         {
-            daffodil->subcommand = DAFFODIL_PARSE;
+            cli->subcommand = DAFFODIL_PARSE;
             status = parse_daffodil_parse_cli(state);
         }
         else if (strcmp(arg, "unparse") == 0)
         {
-            daffodil->subcommand = DAFFODIL_UNPARSE;
+            cli->subcommand = DAFFODIL_UNPARSE;
             status = parse_daffodil_unparse_cli(state);
         }
         else
@@ -277,7 +277,7 @@ daffodil_handler(int key, char *arg, struct argp_state *state)
         break;
 
     case ARGP_KEY_END:
-        if (daffodil->subcommand == DAFFODIL_NONE)
+        if (cli->subcommand == DAFFODIL_NONE)
         {
             argp_error(state, "missing subcommand");
         }

@@ -24,6 +24,12 @@
 
 // Prototypes needed for compilation
 
+struct ElementRuntimeData;
+struct InfosetBase;
+struct PState;
+struct UState;
+struct VisitEventHandler;
+
 typedef struct ElementRuntimeData ERD;
 typedef struct InfosetBase        InfosetBase;
 typedef struct PState             PState;
@@ -49,9 +55,9 @@ typedef const char *(*VisitInt32Elem)(const VisitEventHandler *handler,
 
 typedef struct NamedQName
 {
-    char *name;  // element name (including prefix if any)
-    char *xmlns; // xmlns attribute name (including prefix if any)
-    char *ns;    // xmlns attribute value (a namespace URI)
+    const char *prefix; // prefix (optional, may be NULL)
+    const char *local;  // local name
+    const char *ns;     // namespace URI (optional, may be NULL)
 } NamedQName;
 
 // TypeCode - type of an infoset element
@@ -109,9 +115,25 @@ typedef struct VisitEventHandler
     const VisitInt32Elem     visitInt32Elem;
 } VisitEventHandler;
 
+// get_erd_name, get_erd_xmlns, get_erd_ns - get name and xmlns
+// attribute/value from ERD to use for XML element
+
+extern const char *get_erd_name(const ERD *erd);
+extern const char *get_erd_xmlns(const ERD *erd);
+extern const char *get_erd_ns(const ERD *erd);
+
+// rootElement - return a root element to walk while parsing or unparsing
+
+// (actual definition will be in generated_code.c, not infoset.c)
+extern InfosetBase *rootElement();
+
 // walkInfoset - walk an infoset and call VisitEventHandler methods
 
 extern const char *walkInfoset(const VisitEventHandler *handler,
                                const InfosetBase *      infoset);
+
+// eof_or_error_msg - check if a stream has its eof or error indicator set
+
+extern const char *eof_or_error_msg(FILE *stream);
 
 #endif // INFOSET_H

@@ -16,12 +16,11 @@
  */
 
 #include "daffodil_argp.h" // for daffodil_cli, parse_daffodil_cli, ...
-#include "infoset.h"       // for walkInfoset, InfosetBase, ERD, ...
-#include "root_element.h"  // for rootElement
+#include "infoset.h"       // for InfosetBase, walkInfoset, rootElement, ...
 #include "xml_reader.h"    // for xmlReaderMethods, XMLReader
 #include "xml_writer.h"    // for xmlWriterMethods, XMLWriter
 #include <error.h>         // for error
-#include <stdio.h>         // for FILE, perror, fclose, fopen, NULL, stdin
+#include <stdio.h>         // for FILE, perror, fclose, fopen, stdin
 #include <stdlib.h>        // for exit, EXIT_FAILURE
 #include <string.h>        // for strcmp
 
@@ -33,7 +32,7 @@ fopen_or_exit(FILE *stream, const char *pathname, const char *mode)
     if (strcmp(pathname, "-") != 0)
     {
         stream = fopen(pathname, mode);
-        if (stream == NULL)
+        if (!stream)
         {
             perror("Error opening file: ");
             exit(EXIT_FAILURE);
@@ -59,7 +58,7 @@ fclose_or_exit(FILE *stream, FILE *stdin_stdout)
 static void
 continue_or_exit(const char *error_msg)
 {
-    if (error_msg != NULL)
+    if (error_msg)
     {
         error(EXIT_FAILURE, 0, "%s", error_msg);
     }
@@ -90,10 +89,18 @@ main(int argc, char *argv[])
             const char *error_msg = root->erd->parseSelf(root, &pstate);
             continue_or_exit(error_msg);
 
-            // Visit the infoset and print XML from it.
-            XMLWriter xmlWriter = {xmlWriterMethods, output};
-            error_msg = walkInfoset((VisitEventHandler *)&xmlWriter, root);
-            continue_or_exit(error_msg);
+            if (strcmp(daffodil_parse.infoset_converter, "xml") == 0)
+            {
+                // Visit the infoset and print XML from it.
+                XMLWriter xmlWriter = {xmlWriterMethods, output};
+                error_msg = walkInfoset((VisitEventHandler *)&xmlWriter, root);
+                continue_or_exit(error_msg);
+            }
+            else
+            {
+                error(EXIT_FAILURE, 0, "Cannot write infoset type '%s'",
+                      daffodil_parse.infoset_converter);
+            }
         }
         else if (daffodil_cli.subcommand == DAFFODIL_UNPARSE)
         {
@@ -101,15 +108,23 @@ main(int argc, char *argv[])
             input = fopen_or_exit(input, daffodil_unparse.infile, "r");
             output = fopen_or_exit(output, daffodil_unparse.outfile, "w");
 
-            // Initialize our infoset's values from the XML data.
-            XMLReader   xmlReader = {xmlReaderMethods, input, root};
-            const char *error_msg =
-                walkInfoset((VisitEventHandler *)&xmlReader, root);
-            continue_or_exit(error_msg);
+            if (strcmp(daffodil_unparse.infoset_converter, "xml") == 0)
+            {
+                // Initialize our infoset's values from the XML data.
+                XMLReader   xmlReader = {xmlReaderMethods, input, root};
+                const char *error_msg =
+                    walkInfoset((VisitEventHandler *)&xmlReader, root);
+                continue_or_exit(error_msg);
+            }
+            else
+            {
+                error(EXIT_FAILURE, 0, "Cannot read infoset type '%s'",
+                      daffodil_unparse.infoset_converter);
+            }
 
             // Unparse our infoset to the output file.
-            UState ustate = {output};
-            error_msg = root->erd->unparseSelf(root, &ustate);
+            UState      ustate = {output};
+            const char *error_msg = root->erd->unparseSelf(root, &ustate);
             continue_or_exit(error_msg);
         }
 
