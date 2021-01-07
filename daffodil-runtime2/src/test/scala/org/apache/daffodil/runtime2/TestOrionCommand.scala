@@ -21,16 +21,18 @@ import org.junit.Test
 import org.apache.daffodil.tdml.Runner
 import org.junit.AfterClass
 
-object TestRuntime2 {
+object TestOrionCommand {
   val testDir = "/org/apache/daffodil/runtime2/"
-  val runner = Runner(testDir, "TestRuntime2.tdml")
+  val runner = Runner(testDir, "orion-command.tdml")
 
   @AfterClass def shutDown(): Unit = { runner.reset }
 }
 
-class TestRuntime2 {
-  import TestRuntime2._
+class TestOrionCommand {
+  import TestOrionCommand._
 
-  @Test def test_ex_ints_parse(): Unit = { runner.runOneTest("ex_ints_parse") }
-  @Test def test_ex_ints_unparse(): Unit = { runner.runOneTest("ex_ints_unparse") }
+  @Test def test_command_parse(): Unit = { runner.runOneTest("command_parse") }
+  @Test def test_command_unparse(): Unit = { runner.runOneTest("command_unparse") }
+  @Test def test_video_settings_parse(): Unit = { runner.runOneTest("video_settings_parse") }
+  @Test def test_video_settings_unparse(): Unit = { runner.runOneTest("video_settings_unparse") }
 }

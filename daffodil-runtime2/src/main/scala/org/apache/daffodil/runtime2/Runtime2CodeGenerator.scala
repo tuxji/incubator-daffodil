@@ -58,10 +58,14 @@ object Runtime2CodeGenerator
       case g: OrderedSequence => orderedSequenceGenerateCode(g, state)
       case g: ElementParseAndUnspecifiedLength => elementParseAndUnspecifiedLengthGenerateCode(g, state)
       case g: BinaryIntegerKnownLength => binaryIntegerKnownLengthGenerateCode(g, state)
-      case _: CaptureContentLengthStart => // not generating code here
-      case _: CaptureContentLengthEnd => // not generating code here
-      case _: CaptureValueLengthStart => //not generating code here
-      case _: CaptureValueLengthEnd => // not generating code here
+      case _: CaptureContentLengthStart => noop
+      case _: CaptureContentLengthEnd => noop
+      case _: CaptureValueLengthStart => noop
+      case _: CaptureValueLengthEnd => noop
       case _ => gram.SDE("Code generation not supported for: %s", Misc.getNameFromClass(gram))
     }
+
+  private def noop: Unit = {
+    // Not generating code here, but can use as a breakpoint
+  }
 }

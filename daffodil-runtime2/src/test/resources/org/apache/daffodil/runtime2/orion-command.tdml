@@ -17,10 +17,10 @@ limitations under the License.
 -->
 
 <tdml:testSuite
-  defaultConfig="config-runtime2"
+  defaultConfig="config-runtime1"
   defaultImplementations="daffodil daffodil-runtime2"
   defaultRoundTrip="onePass"
-  description="TDML tests for daffodil-runtime2"
+  description="TDML tests for orion-command.xml"
   xmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"
   xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"
   xmlns:tdml="http://www.ibm.com/xmlns/dfdl/testData">
@@ -38,28 +38,54 @@ limitations under the License.
   </tdml:defineConfig>
 
   <tdml:parserTestCase
-    description="Parse example ex_ints"
-    model="TestRuntime2.dfdl.xsd"
-    name="ex_ints_parse"
-    root="ex_ints">
+    description="Parse example command"
+    model="orion-command.xml"
+    name="command_parse"
+    root="Command">
     <tdml:document>
-      <tdml:documentPart type="file">ex_ints_parse.dat</tdml:documentPart>
+      <tdml:documentPart type="file">command_parse.dat</tdml:documentPart>
     </tdml:document>
     <tdml:infoset>
-      <tdml:dfdlInfoset type="file">ex_ints_unparse.xml</tdml:dfdlInfoset>
+      <tdml:dfdlInfoset type="file">command_unparse.xml</tdml:dfdlInfoset>
     </tdml:infoset>
   </tdml:parserTestCase>
 
   <tdml:unparserTestCase
-    description="Unparse example ex_ints"
-    model="TestRuntime2.dfdl.xsd"
-    name="ex_ints_unparse"
-    root="ex_ints">
+    description="Unparse example command"
+    model="orion-command.xml"
+    name="command_unparse"
+    root="Command">
     <tdml:infoset>
-      <tdml:dfdlInfoset type="file">ex_ints_unparse.xml</tdml:dfdlInfoset>
+      <tdml:dfdlInfoset type="file">command_unparse.xml</tdml:dfdlInfoset>
     </tdml:infoset>
     <tdml:document>
-      <tdml:documentPart type="file">ex_ints_parse.dat</tdml:documentPart>
+      <tdml:documentPart type="file">command_parse.dat</tdml:documentPart>
+    </tdml:document>
+  </tdml:unparserTestCase>
+
+  <tdml:parserTestCase
+    description="Parse example video_settings"
+    model="orion-command.xml"
+    name="video_settings_parse"
+    root="VideoSettings">
+    <tdml:document>
+      <tdml:documentPart type="file">video_settings_parse.dat</tdml:documentPart>
+    </tdml:document>
+    <tdml:infoset>
+      <tdml:dfdlInfoset type="file">video_settings_unparse.xml</tdml:dfdlInfoset>
+    </tdml:infoset>
+  </tdml:parserTestCase>
+
+  <tdml:unparserTestCase
+    description="Unparse example video_settings"
+    model="orion-command.xml"
+    name="video_settings_unparse"
+    root="VideoSettings">
+    <tdml:infoset>
+      <tdml:dfdlInfoset type="file">video_settings_unparse.xml</tdml:dfdlInfoset>
+    </tdml:infoset>
+    <tdml:document>
+      <tdml:documentPart type="file">video_settings_parse.dat</tdml:documentPart>
     </tdml:document>
   </tdml:unparserTestCase>
 
