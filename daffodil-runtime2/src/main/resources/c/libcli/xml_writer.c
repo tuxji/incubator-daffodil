@@ -90,10 +90,10 @@ xmlEndComplex(XMLWriter *writer, const InfosetBase *base)
     return complex ? NULL : "Underflowed the XML stack";
 }
 
-// Write 8, 16, 32, or 64-bit signed/unsigned integer as element
+// Write 8, 16, 32, or 64-bit signed/unsigned Number or floating point number as element
 
 static const char *
-xmlIntegerElem(XMLWriter *writer, const ERD *erd, const void *intLocation)
+xmlNumberElem(XMLWriter *writer, const ERD *erd, const void *numLocation)
 {
     mxml_node_t *parent = stack_top(&writer->stack);
     const char * name = get_erd_name(erd);
@@ -113,35 +113,43 @@ xmlIntegerElem(XMLWriter *writer, const ERD *erd, const void *intLocation)
     switch (typeCode)
     {
     case PRIMITIVE_UINT64:
-        text = mxmlNewOpaquef(simple, "%lu", *(const uint64_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%lu", *(const uint64_t *)numLocation);
         break;
     case PRIMITIVE_UINT32:
-        text = mxmlNewOpaquef(simple, "%u", *(const uint32_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%u", *(const uint32_t *)numLocation);
         break;
     case PRIMITIVE_UINT16:
-        text = mxmlNewOpaquef(simple, "%hu", *(const uint16_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%hu", *(const uint16_t *)numLocation);
         break;
     case PRIMITIVE_UINT8:
-        text = mxmlNewOpaquef(simple, "%hhu", *(const uint8_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%hhu", *(const uint8_t *)numLocation);
         break;
     case PRIMITIVE_INT64:
-        text = mxmlNewOpaquef(simple, "%li", *(const int64_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%li", *(const int64_t *)numLocation);
         break;
     case PRIMITIVE_INT32:
-        text = mxmlNewOpaquef(simple, "%i", *(const int32_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%i", *(const int32_t *)numLocation);
         break;
     case PRIMITIVE_INT16:
-        text = mxmlNewOpaquef(simple, "%hi", *(const int16_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%hi", *(const int16_t *)numLocation);
         break;
     case PRIMITIVE_INT8:
-        text = mxmlNewOpaquef(simple, "%hhi", *(const int8_t *)intLocation);
+        text = mxmlNewOpaquef(simple, "%hhi", *(const int8_t *)numLocation);
+        break;
+    case PRIMITIVE_FLOAT:
+        // Round-trippable float, shortest possible
+        text = mxmlNewOpaquef(simple, "%.9g", *(const float *)numLocation);
+        break;
+    case PRIMITIVE_DOUBLE:
+        // Round-trippable double, shortest possible
+        text = mxmlNewOpaquef(simple, "%.17lg", *(const double *)numLocation);
         break;
     default:
         // Let text remain NULL and report error below
         break;
     }
 
-    return (simple && text) ? NULL : "Error making new simple integer element";
+    return (simple && text) ? NULL : "Error making new simple numerical element";
 }
 
 // Initialize a struct with our visitor event handler methods
@@ -149,5 +157,5 @@ xmlIntegerElem(XMLWriter *writer, const ERD *erd, const void *intLocation)
 const VisitEventHandler xmlWriterMethods = {
     (VisitStartDocument)&xmlStartDocument, (VisitEndDocument)&xmlEndDocument,
     (VisitStartComplex)&xmlStartComplex,   (VisitEndComplex)&xmlEndComplex,
-    (VisitIntegerElem)&xmlIntegerElem,
+    (VisitNumberElem)&xmlNumberElem,
 };

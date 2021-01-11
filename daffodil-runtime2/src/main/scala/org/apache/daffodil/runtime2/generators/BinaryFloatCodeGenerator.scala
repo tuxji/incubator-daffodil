@@ -17,48 +17,37 @@
 
 package org.apache.daffodil.runtime2.generators
 
-import org.apache.daffodil.grammar.primitives.BinaryIntegerKnownLength
-import org.apache.daffodil.schema.annotation.props.gen.{ BitOrder, ByteOrder }
+import org.apache.daffodil.dsom.ElementBase
+import org.apache.daffodil.schema.annotation.props.gen.ByteOrder
 
-trait BinaryIntegerKnownLengthCodeGenerator {
+trait BinaryFloatCodeGenerator {
 
-  def binaryIntegerKnownLengthGenerateCode(g: BinaryIntegerKnownLength, cgState: CodeGeneratorState): Unit = {
+  def binaryFloatGenerateCode(e: ElementBase, lengthInBits: Int, cgState: CodeGeneratorState): Unit = {
     // For the time being this is a very limited back end.
     // So there are some restrictions to enforce.
-    val e = g.e
-    val lengthInBits: Long = {
-      e.schemaDefinitionUnless(e.elementLengthInBitsEv.isConstant, "Runtime dfdl:length expressions not supported.")
-      val len = e.elementLengthInBitsEv.constValue.get
-      len
-    }
-    if (e.bitOrder ne BitOrder.MostSignificantBitFirst)
-      e.SDE("Only dfdl:bitOrder 'mostSignificantBitFirst' is supported.")
+    assert(lengthInBits == 32 || lengthInBits == 64)
     val byteOrder: ByteOrder = {
       e.schemaDefinitionUnless(e.byteOrderEv.isConstant, "Runtime dfdl:byteOrder expressions not supported.")
       val bo = e.byteOrderEv.constValue
       bo
     }
 
-    // Use an unusual memory bit pattern (magic debug value) to mark our field
-    // as uninitialized in case parsing or unparsing fails to set the field.
-    val initialValue = lengthInBits match {
-      case 8 => "0xCC"
-      case 16 => "0xCCCC"
-      case 32 => "0xCCCCCCCC"
-      case 64 => "0xCCCCCCCCCCCCCCCC"
-      case _ => e.SDE("Lengths other than 8, 16, 32, or 64 bits are not supported.")
-    }
-    val fieldName = e.namedQName.local
-    val integer = if (lengthInBits == 8) "uint8_t " else s"uint${lengthInBits}_t"
+    // Use a signaling NAN to mark our field as uninitialized in case parsing
+    // or unparsing fails to set the field.
+    val nan = if (lengthInBits == 32) "SNANF" else "SNAN"
+    val float = if (lengthInBits == 32) "float " else "double"
+    val integer = if (lengthInBits == 32) "uint32_t" else "uint64_t"
     val conv = if (byteOrder eq ByteOrder.BigEndian) "be" else "le"
+    val fieldName = e.namedQName.local
 
-    val initStatement = s"    instance->$fieldName = $initialValue;"
+    val initStatement = s"    instance->$fieldName = $nan;"
     val parseStatement =
       s"""    if (!error_msg)
          |    {
          |        union
          |        {
-         |            char     c_val[sizeof($integer)];
+         |            char     c_val[sizeof($float)];
+         |            $float   f_val;
          |            $integer i_val;
          |        } buffer;
          |        size_t count = fread(&buffer.c_val, 1, sizeof(buffer), pstate->stream);
@@ -66,17 +55,20 @@ trait BinaryIntegerKnownLengthCodeGenerator {
          |        {
          |            error_msg = eof_or_error_msg(pstate->stream);
          |        }
-         |        instance->$fieldName = ${conv}${lengthInBits}toh(buffer.i_val);
+         |        buffer.i_val = ${conv}${lengthInBits}toh(buffer.i_val);
+         |        instance->$fieldName = buffer.f_val;
          |    }""".stripMargin
     val unparseStatement =
       s"""    if (!error_msg)
          |    {
          |        union
          |        {
-         |            char     c_val[sizeof($integer)];
+         |            char     c_val[sizeof($float)];
+         |            $float   f_val;
          |            $integer i_val;
          |        } buffer;
-         |        buffer.i_val = hto${conv}${lengthInBits}(instance->$fieldName);
+         |        buffer.f_val = instance->$fieldName;
+         |        buffer.i_val = hto${conv}${lengthInBits}(buffer.i_val);
          |        size_t count = fwrite(buffer.c_val, 1, sizeof(buffer), ustate->stream);
          |        if (count < sizeof(buffer))
          |        {

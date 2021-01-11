@@ -35,9 +35,11 @@
         </xs:appinfo>
     </xs:annotation>
 
-    <xs:element name="ex_ints">
+    <xs:element name="ex_nums">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="be_double" type="xs:double" />
+                <xs:element name="be_float" type="xs:float" />
                 <xs:element name="be_uint64" type="xs:unsignedLong" />
                 <xs:element name="be_uint32" type="xs:unsignedInt" />
                 <xs:element name="be_uint16" type="xs:unsignedShort" />
@@ -54,6 +56,8 @@
                 <xs:element name="le_int32" type="xs:int" dfdl:byteOrder="littleEndian" />
                 <xs:element name="le_int16" type="xs:short" dfdl:byteOrder="littleEndian" />
                 <xs:element name="le_int8" type="xs:byte" dfdl:byteOrder="littleEndian" />
+                <xs:element name="le_float" type="xs:float" dfdl:byteOrder="littleEndian" />
+                <xs:element name="le_double" type="xs:double" dfdl:byteOrder="littleEndian" />
             </xs:sequence>
         </xs:complexType>
     </xs:element>

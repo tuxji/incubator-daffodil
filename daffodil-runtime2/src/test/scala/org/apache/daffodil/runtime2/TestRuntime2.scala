@@ -31,6 +31,6 @@ object TestRuntime2 {
 class TestRuntime2 {
   import TestRuntime2._
 
-  @Test def test_ex_ints_parse(): Unit = { runner.runOneTest("ex_ints_parse") }
-  @Test def test_ex_ints_unparse(): Unit = { runner.runOneTest("ex_ints_unparse") }
+  @Test def test_ex_nums_parse(): Unit = { runner.runOneTest("ex_nums_parse") }
+  @Test def test_ex_nums_unparse(): Unit = { runner.runOneTest("ex_nums_unparse") }
 }

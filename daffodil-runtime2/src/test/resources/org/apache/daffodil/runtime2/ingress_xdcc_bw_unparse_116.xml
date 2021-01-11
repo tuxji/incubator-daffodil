@@ -16,22 +16,27 @@
   limitations under the License.
 -->
 
-<idl:VideoSettings xmlns:idl="urn:idl:1.0">
-  <sync0>208</sync0>
-  <sync1>13</sync1>
-  <id>98</id>
-  <length>14</length>
-  <destIp>
-    <item>1</item>
-    <item>2</item>
-    <item>3</item>
-    <item>4</item>
-  </destIp>
-  <port>8080</port>
-  <bitrate>0</bitrate>
-  <ttl>0</ttl>
-  <streamType>0</streamType>
-  <mjpegQuality>0</mjpegQuality>
-  <saveSettingsAndTsPacketCount>0</saveSettingsAndTsPacketCount>
-  <checksum>3073</checksum>
-</idl:VideoSettings>
+<gma:GapsPDU xmlns:gma="urn:gma:1.0">
+  <gma:SDHBWPDU>
+    <gma:SDHBWHeader>
+      <tag0>1</tag0>
+      <tagm>2</tagm>
+      <tags>3</tags>
+      <tagt>116</tagt>
+      <len>4</len>
+      <crc>5</crc>
+    </gma:SDHBWHeader>
+    <gma:ApplicationData>
+      <gma:Response_echo_requestEOIRDetections>
+        <ret>6</ret>
+      </gma:Response_echo_requestEOIRDetections>
+    </gma:ApplicationData>
+    <gma:GapsTrailer>
+      <seq>7</seq>
+      <rqr>8</rqr>
+      <oid>9</oid>
+      <mid>10</mid>
+      <crc>11</crc>
+    </gma:GapsTrailer>
+  </gma:SDHBWPDU>
+</gma:GapsPDU>

@@ -16,21 +16,27 @@
   limitations under the License.
 -->
 
-<ex_ints xmlns="http://example.com">
-    <be_uint64>64</be_uint64>
-    <be_uint32>32</be_uint32>
-    <be_uint16>16</be_uint16>
-    <be_uint8>8</be_uint8>
-    <be_int64>-64</be_int64>
-    <be_int32>-32</be_int32>
-    <be_int16>-16</be_int16>
-    <be_int8>-8</be_int8>
-    <le_uint64>64</le_uint64>
-    <le_uint32>32</le_uint32>
-    <le_uint16>16</le_uint16>
-    <le_uint8>8</le_uint8>
-    <le_int64>-64</le_int64>
-    <le_int32>-32</le_int32>
-    <le_int16>-16</le_int16>
-    <le_int8>-8</le_int8>
-</ex_ints>
+<gma:GapsPDU xmlns:gma="urn:gma:1.0">
+  <gma:SDHBWPDU>
+    <gma:SDHBWHeader>
+      <tag0>1</tag0>
+      <tagm>2</tagm>
+      <tags>3</tags>
+      <tagt>18</tagt>
+      <len>4</len>
+      <crc>5</crc>
+    </gma:SDHBWHeader>
+    <gma:ApplicationData>
+      <gma:Response_echo_recieveEOIRDetections>
+        <ret>6</ret>
+      </gma:Response_echo_recieveEOIRDetections>
+    </gma:ApplicationData>
+    <gma:GapsTrailer>
+      <seq>7</seq>
+      <rqr>8</rqr>
+      <oid>9</oid>
+      <mid>10</mid>
+      <crc>11</crc>
+    </gma:GapsTrailer>
+  </gma:SDHBWPDU>
+</gma:GapsPDU>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<gma:GapsPDU xmlns:gma="urn:gma:1.0">
+  <gma:SDHBWPDU>
+    <gma:SDHBWHeader>
+      <tag0>1</tag0>
+      <tagm>2</tagm>
+      <tags>3</tags>
+      <tagt>115</tagt>
+      <len>4</len>
+      <crc>5</crc>
+    </gma:SDHBWHeader>
+    <gma:ApplicationData>
+      <gma:Request_echo_requestEOIRDetections>
+        <phase>6</phase>
+        <phase>7</phase>
+        <phase>8</phase>
+        <phase>9</phase>
+        <phase>10</phase>
+        <phase>11</phase>
+        <phase>12</phase>
+        <phase>13</phase>
+        <phase>14</phase>
+        <phase>15</phase>
+        <phase>16</phase>
+        <phase>17</phase>
+        <phase>18</phase>
+        <phase>19</phase>
+        <phase>20</phase>
+        <phase>21</phase>
+        <phase>22</phase>
+        <phase>23</phase>
+        <phase>24</phase>
+        <phase>25</phase>
+        <phase>26</phase>
+        <phase>27</phase>
+        <phase>28</phase>
+        <phase>29</phase>
+        <phase>30</phase>
+        <phase>31</phase>
+        <phase>32</phase>
+        <phase>33</phase>
+        <phase>34</phase>
+        <phase>35</phase>
+        <phase>36</phase>
+        <phase>37</phase>
+      </gma:Request_echo_requestEOIRDetections>
+    </gma:ApplicationData>
+    <gma:GapsTrailer>
+      <seq>38</seq>
+      <rqr>39</rqr>
+      <oid>40</oid>
+      <mid>41</mid>
+      <crc>42</crc>
+    </gma:GapsTrailer>
+  </gma:SDHBWPDU>
+</gma:GapsPDU>

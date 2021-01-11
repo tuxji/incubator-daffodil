@@ -20,6 +20,8 @@ package org.apache.daffodil.runtime2.generators
 import org.apache.daffodil.dpath.NodeInfo
 import org.apache.daffodil.dpath.NodeInfo.PrimType
 import org.apache.daffodil.dsom.ElementBase
+import org.apache.daffodil.dsom.GlobalElementDecl
+import org.apache.daffodil.dsom.SchemaComponent
 import org.apache.daffodil.exceptions.ThrowsSDE
 
 import scala.collection.mutable
@@ -34,8 +36,28 @@ class CodeGeneratorState {
   private val finalStructs = mutable.ArrayBuffer[String]()
   private val finalImplementation = mutable.ArrayBuffer[String]()
 
+  // Builds a name for the given element that needs to be unique in C file scope
+  private def qualifiedName(context: ElementBase): String = {
+    def buildName(sc: SchemaComponent, sb: StringBuilder): StringBuilder = {
+      sc match {
+        case gd: GlobalElementDecl => sb ++= gd.namedQName.local += '_'
+        case eb: ElementBase => sb ++= eb.namedQName.local += '_'
+        case _ => // don't include other schema components in qualified name
+      }
+      sc.optLexicalParent.foreach {
+        buildName(_, sb)
+      }
+      sb
+    }
+    val sb = buildName(context, new StringBuilder)
+    sb.toString()
+  }
+
+  // Returns the given element's local name (doesn't have to be unique)
+  private def localName(context: ElementBase): String = context.namedQName.local
+
   def addImplementation(context: ElementBase): Unit = {
-    val C = context.namedQName.local
+    val C = localName(context)
     val initStatements = structs.top.initStatements.mkString("\n")
     val parserStatements = structs.top.parserStatements.mkString("\n")
     val unparserStatements = structs.top.unparserStatements.mkString("\n")
@@ -72,7 +94,7 @@ class CodeGeneratorState {
 
   private def defineQNameInit(context: ElementBase): String = {
     val prefix = context.namedQName.prefix.map(p => s""""$p"""").getOrElse("NULL")
-    val local = context.namedQName.local
+    val local = localName(context)
     val nsUri = context.namedQName.namespace.toStringOrNullIfNoNS
     // Optimize away ns declaration if possible, although this approach may not be entirely correct
     val parentNsUri = context.enclosingElements.headOption.map(_.namedQName.namespace.toStringOrNullIfNoNS).getOrElse("no-ns")
@@ -87,7 +109,8 @@ class CodeGeneratorState {
   }
 
   def addComplexTypeERD(context: ElementBase): Unit = {
-    val C = context.namedQName.local
+    val C = localName(context)
+    val qn = qualifiedName(context)
     val count = structs.top.declarations.length
     val offsetComputations = structs.top.offsetComputations.mkString(",\n")
     val erdComputations = structs.top.erdComputations.mkString(",\n")
@@ -103,7 +126,7 @@ class CodeGeneratorState {
          |$erdComputations
          |};
          |
-         |static const ERD ${C}_ERD = {
+         |static const ERD ${qn}_ERD = {
          |$qnameInit
          |    COMPLEX,                         // typeCode
          |    $count,                               // numChildren
@@ -118,7 +141,8 @@ class CodeGeneratorState {
   }
 
   def addStruct(context: ElementBase): Unit = {
-    val C = context.namedQName.local
+    val C = localName(context)
+    val qn = qualifiedName(context)
     val declarations = structs.top.declarations.mkString("\n")
     val struct =
       s"""typedef struct $C
@@ -128,7 +152,7 @@ class CodeGeneratorState {
          |} $C;
          |""".stripMargin
     finalStructs += struct
-    val initStatement = s"    instance->_base.erd = &${C}_ERD;"
+    val initStatement = s"    instance->_base.erd = &${qn}_ERD;"
     structs.top.initStatements += initStatement
   }
 
@@ -139,7 +163,7 @@ class CodeGeneratorState {
   }
 
   def addComplexTypeStatements(child: ElementBase): Unit = {
-    val C = child.namedQName.local
+    val C = localName(child)
     val e = child.name
     val initStatement = s"    ${C}_initSelf(&instance->$e);"
     val parseStatement =
@@ -158,7 +182,7 @@ class CodeGeneratorState {
   }
 
   def pushComplexElement(context: ElementBase): Unit = {
-    val C = context.namedQName.local
+    val C = localName(context)
     structs.push(new ComplexCGState(C))
   }
 
@@ -167,7 +191,7 @@ class CodeGeneratorState {
   }
 
   def addSimpleTypeERD(context: ElementBase): Unit = {
-    val e = context.namedQName.local
+    val qn = qualifiedName(context)
     val qnameInit = defineQNameInit(context)
     val typeCode = context.optPrimType.get match {
       case PrimType.UnsignedLong => "PRIMITIVE_UINT64"
@@ -178,10 +202,12 @@ class CodeGeneratorState {
       case PrimType.Int => "PRIMITIVE_INT32"
       case PrimType.Short => "PRIMITIVE_INT16"
       case PrimType.Byte => "PRIMITIVE_INT8"
+      case PrimType.Float => "PRIMITIVE_FLOAT"
+      case PrimType.Double => "PRIMITIVE_DOUBLE"
       case p: PrimType => context.SDE("PrimType %s not supported yet.", p.toString)
     }
     val erd =
-      s"""static const ERD ${e}_ERD = {
+      s"""static const ERD ${qn}_ERD = {
          |$qnameInit
          |    $typeCode, // typeCode
          |    0,               // numChildren
@@ -198,9 +224,10 @@ class CodeGeneratorState {
 
   def addComputations(child: ElementBase): Unit = {
     val C = structs.top.C
-    val e = child.namedQName.local
+    val e = localName(child)
+    val qn = qualifiedName(child)
     val offsetComputation = s"    (char *)&${C}_compute_ERD_offsets.$e - (char *)&${C}_compute_ERD_offsets"
-    val erdComputation = s"    &${e}_ERD"
+    val erdComputation = s"    &${qn}_ERD"
     structs.top.offsetComputations += offsetComputation
     structs.top.erdComputations += erdComputation
   }
@@ -217,10 +244,12 @@ class CodeGeneratorState {
         case PrimType.Int => "int32_t    "
         case PrimType.Short => "int16_t    "
         case PrimType.Byte => "int8_t     "
+        case PrimType.Float => "float      "
+        case PrimType.Double => "double     "
         case x => context.SDE("Unsupported primitive type: " + x)
       }
     } else {
-      child.namedQName.local + "         "
+      localName(child)
     }
     structs.top.declarations += s"    $definition ${child.name};"
   }
@@ -247,8 +276,10 @@ class CodeGeneratorState {
     val erds = this.erds.mkString("\n")
     val finalImplementation = this.finalImplementation.mkString("\n")
     val code =
-      s"""#include "generated_code.h" // for generated code structs
+      s"""#define __STDC_WANT_IEC_60559_BFP_EXT__
+         |#include "generated_code.h" // for generated code structs
          |#include <endian.h>         // for be32toh, htobe32, etc.
+         |#include <math.h>           // for SNAN, SNANF
          |#include <stddef.h>         // for ptrdiff_t
          |#include <stdio.h>          // for NULL, fread, fwrite, size_t, FILE
          |
@@ -266,7 +297,7 @@ class CodeGeneratorState {
          |{
          |    static $rootElementName    instance;
          |    InfosetBase *root = &instance._base;
-         |    ${rootElementName}_ERD.initSelf(root);
+         |    ${rootElementName}__ERD.initSelf(root);
          |    return root;
          |}
          |

@@ -48,9 +48,9 @@ typedef const char *(*VisitStartComplex)(const VisitEventHandler *handler,
                                          const InfosetBase *      base);
 typedef const char *(*VisitEndComplex)(const VisitEventHandler *handler,
                                        const InfosetBase *      base);
-typedef const char *(*VisitIntegerElem)(const VisitEventHandler *handler,
-                                        const ERD *              erd,
-                                        const void *             intLocation);
+typedef const char *(*VisitNumberElem)(const VisitEventHandler *handler,
+                                       const ERD *              erd,
+                                       const void *             numLocation);
 
 // NamedQName - name of an infoset element
 
@@ -73,7 +73,9 @@ enum TypeCode
     PRIMITIVE_INT64,
     PRIMITIVE_INT32,
     PRIMITIVE_INT16,
-    PRIMITIVE_INT8
+    PRIMITIVE_INT8,
+    PRIMITIVE_FLOAT,
+    PRIMITIVE_DOUBLE
 };
 
 // ERD - element runtime data needed to parse/unparse objects
@@ -120,7 +122,7 @@ typedef struct VisitEventHandler
     const VisitEndDocument   visitEndDocument;
     const VisitStartComplex  visitStartComplex;
     const VisitEndComplex    visitEndComplex;
-    const VisitIntegerElem   visitIntegerElem;
+    const VisitNumberElem    visitNumberElem;
 } VisitEventHandler;
 
 // get_erd_name, get_erd_xmlns, get_erd_ns - get name and xmlns

@@ -3,7 +3,7 @@
   <xs:annotation>
     <xs:appinfo source="http://www.ogf.org/dfdl/">
       <dfdl:defineFormat name="defaults">
-        <dfdl:format alignment="8" alignmentUnits="bits" binaryBooleanFalseRep="0" binaryBooleanTrueRep="1" binaryFloatRep="ieee" binaryNumberCheckPolicy="lax" binaryNumberRep="binary" bitOrder="mostSignificantBitFirst" byteOrder="bigEndian" choiceLengthKind="implicit" encoding="utf-8" encodingErrorPolicy="replace" escapeSchemeRef="" fillByte="%#r20;" floating="no" ignoreCase="no" initiatedContent="no" initiator="" leadingSkip="0" lengthKind="implicit" lengthUnits="bits" occursCountKind="implicit" prefixIncludesPrefixLength="no" representation="binary" separator="" separatorPosition="infix" sequenceKind="ordered" terminator="" textBidi="no" textPadKind="none" trailingSkip="0" truncateSpecifiedLengthString="no"/>
+        <dfdl:format alignment="1" alignmentUnits="bits" binaryBooleanFalseRep="0" binaryBooleanTrueRep="1" binaryFloatRep="ieee" binaryNumberCheckPolicy="lax" binaryNumberRep="binary" bitOrder="mostSignificantBitFirst" byteOrder="bigEndian" choiceLengthKind="implicit" encoding="utf-8" encodingErrorPolicy="replace" escapeSchemeRef="" fillByte="%#r20;" floating="no" ignoreCase="no" initiatedContent="no" initiator="" leadingSkip="0" lengthKind="implicit" lengthUnits="bits" occursCountKind="implicit" prefixIncludesPrefixLength="no" representation="binary" separator="" separatorPosition="infix" sequenceKind="ordered" terminator="" textBidi="no" textPadKind="none" trailingSkip="0" truncateSpecifiedLengthString="no"/>
       </dfdl:defineFormat>
       <dfdl:format ref="idl:defaults"/>
     </xs:appinfo>

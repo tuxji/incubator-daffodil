@@ -1,0 +1,288 @@
+<?xml version="1.0" ?><xs:schema targetNamespace="urn:gma:1.0" xmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:gma="urn:gma:1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+ <xs:annotation>
+  <xs:appinfo source="http://www.ogf.org/dfdl/">
+   <dfdl:defineVariable name="ByteOrder" type="xs:string"/>
+   <dfdl:defineFormat name="defaults">
+    <dfdl:format alignment="1" alignmentUnits="bits" binaryBooleanFalseRep="0" binaryBooleanTrueRep="1" binaryCalendarEpoch="1970-01-01T00:00:00+00:00" binaryCalendarRep="bcd" binaryDecimalVirtualPoint="0" binaryFloatRep="ieee" binaryNumberCheckPolicy="lax" binaryNumberRep="binary" binaryPackedSignCodes="C D F C" bitOrder="mostSignificantBitFirst" calendarCenturyStart="53" calendarCheckPolicy="lax" calendarDaysInFirstWeek="4" calendarFirstDayOfWeek="Monday" calendarLanguage="en-US" calendarObserveDST="yes" calendarPattern="yyyy-MM-dd'T'HH:mm:ss" calendarPatternKind="implicit" calendarTimeZone="UTC" choiceLengthKind="implicit" decimalSigned="yes" documentFinalTerminatorCanBeMissing="no" emptyValueDelimiterPolicy="none" encoding="utf-8" encodingErrorPolicy="replace" escapeSchemeRef="" fillByte="%NUL;" floating="no" ignoreCase="no" initiatedContent="no" initiator="" leadingSkip="0" lengthKind="implicit" lengthUnits="bits" nilKind="literalValue" nilValue="NIL" nilValueDelimiterPolicy="none" occursCountKind="implicit" outputNewLine="%CR;%LF;" prefixIncludesPrefixLength="no" representation="binary" separator="" separatorPosition="infix" sequenceKind="ordered" terminator="" textBidi="no" textBooleanFalseRep="false" textBooleanJustification="left" textBooleanPadCharacter="%SP;" textBooleanTrueRep="true" textCalendarJustification="left" textCalendarPadCharacter="%SP;" textNumberCheckPolicy="lax" textNumberJustification="right" textNumberPadCharacter="0" textNumberPattern="#0" textNumberRep="standard" textNumberRounding="pattern" textNumberRoundingIncrement="0.0" textNumberRoundingMode="roundUp" textOutputMinLength="0" textPadKind="none" textStandardBase="10" textStandardDecimalSeparator="." textStandardGroupingSeparator="," textStandardInfinityRep="Inf" textStandardNaNRep="NaN" textStandardZeroRep="" textStringJustification="left" textStringPadCharacter="%SP;" textTrimKind="none" textZonedSignStyle="asciiStandard" trailingSkip="0" truncateSpecifiedLengthString="no" useNilForDefault="no" utf16Width="fixed"/>
+   </dfdl:defineFormat>
+   <dfdl:format byteOrder="bigEndian" ref="gma:defaults"/>
+  </xs:appinfo>
+ </xs:annotation>
+
+ <xs:element name="GapsPDU">
+  <xs:complexType>
+   <xs:choice>         <!-- no way to discriminate SDHBW or SDHBE, so uncomment one -->
+    <!-- <xs:element ref="gma:SDHBEPDU" /> -->
+    <xs:element ref="gma:SDHBWPDU"/>
+   </xs:choice>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="SDHBWPDU">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element ref="gma:SDHBWHeader"/>
+    <xs:element ref="gma:ApplicationData"/>
+    <xs:element ref="gma:GapsTrailer"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="SDHBWHeader">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="tag0" type="gma:gapsuint8"/>
+    <xs:element name="tagm" type="gma:gapsuint8"/>
+    <xs:element name="tags" type="gma:gapsuint8"/>
+    <xs:element name="tagt" type="gma:gapsuint8"/>
+    <xs:element name="len" type="gma:gapsuint16"/>
+    <xs:element name="crc" type="gma:gapsuint16"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+
+ <xs:simpleType dfdl:byteOrder="littleEndian" dfdl:length="8" dfdl:lengthKind="explicit" dfdl:lengthUnits="bytes" name="gapsdouble">
+  <xs:restriction base="xs:double"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:byteOrder="littleEndian" dfdl:length="4" dfdl:lengthKind="explicit" dfdl:lengthUnits="bytes" name="gapsfloat">
+  <xs:restriction base="xs:float"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="64" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsuint64">
+  <xs:restriction base="xs:unsignedLong"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="32" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsuint32">
+  <xs:restriction base="xs:unsignedInt"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="16" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsuint16">
+  <xs:restriction base="xs:unsignedInt"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="8" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsuint8">
+  <xs:restriction base="xs:unsignedInt"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="64" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsint64">
+  <xs:restriction base="xs:long"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="32" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsint32">
+  <xs:restriction base="xs:int"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="16" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsint16">
+  <xs:restriction base="xs:short"/>
+ </xs:simpleType>
+
+ <xs:simpleType dfdl:length="8" dfdl:lengthKind="explicit" dfdl:lengthUnits="bits" name="gapsint8">
+  <xs:restriction base="xs:byte"/>
+ </xs:simpleType>
+
+ <xs:element name="GapsTrailer">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="seq" type="gma:gapsuint32"/>
+    <xs:element name="rqr" type="gma:gapsuint32"/>
+    <xs:element name="oid" type="gma:gapsuint32"/>
+    <xs:element name="mid" type="gma:gapsuint16"/>
+    <xs:element name="crc" type="gma:gapsuint16"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+ <xs:element name="ApplicationData">
+  <xs:complexType>
+   <xs:choice>
+    <xs:element ref="gma:NextRPC">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 11}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Okay">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 12}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Request_echo_component_heartbeats">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 13}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Response_echo_component_heartbeats">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 14}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Request_echo_groundMovers">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 15}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Response_echo_groundMovers">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 16}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Request_echo_recieveEOIRDetections">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 17}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+    <xs:element ref="gma:Response_echo_recieveEOIRDetections">
+     <xs:annotation>
+      <xs:appinfo source="http://www.ogf.org/dfdl/">
+       <dfdl:discriminator test="{../../gma:SDHBWHeader/tagt eq 18}"/>
+      </xs:appinfo>
+     </xs:annotation>
+    </xs:element>
+   </xs:choice>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="NextRPC">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="mux" type="gma:gapsint32"/>
+    <xs:element name="sec" type="gma:gapsint32"/>
+    <xs:element name="typ" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Okay">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="x" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Request_echo_component_heartbeats">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="ss" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="st" type="gma:gapsint8"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Response_echo_component_heartbeats">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="ret" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Request_echo_groundMovers">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="bearing" type="gma:gapsdouble"/>
+    <xs:element name="lat" type="gma:gapsdouble"/>
+    <xs:element name="lon" type="gma:gapsdouble"/>
+    <xs:element name="speed" type="gma:gapsdouble"/>
+    <xs:element name="vehicleID" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Response_echo_groundMovers">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="ret" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Request_echo_recieveEOIRDetections">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="ActiveCnt" type="gma:gapsint32"/>
+    <xs:element name="MaxCnt" type="gma:gapsint32"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID0" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID1" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID2" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID3" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID4" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID5" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID6" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID7" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID8" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID9" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID10" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID11" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID12" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID13" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID14" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID15" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID16" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID17" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID18" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID19" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID20" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID21" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID22" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID23" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="32" minOccurs="32" name="TGT_ISRM_ID24" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="alt" type="gma:gapsdouble"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="bearing" type="gma:gapsdouble"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification0" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification1" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification2" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification3" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification4" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification5" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification6" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification7" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification8" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification9" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification10" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification11" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification12" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification13" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification14" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification15" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification16" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification17" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification18" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification19" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification20" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification21" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification22" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification23" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="64" minOccurs="64" name="classification24" type="gma:gapsint8"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="confidence" type="gma:gapsdouble"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="lat" type="gma:gapsdouble"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="lon" type="gma:gapsdouble"/>
+    <xs:element dfdl:occursCountKind="fixed" maxOccurs="25" minOccurs="25" name="speed" type="gma:gapsdouble"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="Response_echo_recieveEOIRDetections">
+  <xs:complexType>
+   <xs:sequence dfdl:byteOrder="bigEndian">
+    <xs:element name="ret" type="gma:gapsint32"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+</xs:schema>

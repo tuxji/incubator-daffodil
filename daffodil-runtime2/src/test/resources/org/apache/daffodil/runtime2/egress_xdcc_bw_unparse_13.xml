@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<gma:GapsPDU xmlns:gma="urn:gma:1.0">
+  <gma:SDHBWPDU>
+    <gma:SDHBWHeader>
+      <tag0>1</tag0>
+      <tagm>2</tagm>
+      <tags>3</tags>
+      <tagt>13</tagt>
+      <len>4</len>
+      <crc>5</crc>
+    </gma:SDHBWHeader>
+    <gma:ApplicationData>
+      <gma:Request_echo_component_heartbeats>
+        <ss>6</ss>
+        <ss>7</ss>
+        <ss>8</ss>
+        <ss>9</ss>
+        <ss>10</ss>
+        <ss>11</ss>
+        <ss>12</ss>
+        <ss>13</ss>
+        <ss>14</ss>
+        <ss>15</ss>
+        <ss>16</ss>
+        <ss>17</ss>
+        <ss>18</ss>
+        <ss>19</ss>
+        <ss>20</ss>
+        <ss>21</ss>
+        <ss>22</ss>
+        <ss>23</ss>
+        <ss>24</ss>
+        <ss>25</ss>
+        <ss>26</ss>
+        <ss>27</ss>
+        <ss>28</ss>
+        <ss>29</ss>
+        <ss>30</ss>
+        <ss>31</ss>
+        <ss>32</ss>
+        <ss>33</ss>
+        <ss>34</ss>
+        <ss>35</ss>
+        <ss>36</ss>
+        <ss>37</ss>
+        <st>38</st>
+        <st>39</st>
+        <st>40</st>
+        <st>41</st>
+        <st>42</st>
+        <st>43</st>
+        <st>44</st>
+        <st>45</st>
+        <st>46</st>
+        <st>47</st>
+        <st>48</st>
+        <st>49</st>
+        <st>50</st>
+        <st>51</st>
+        <st>52</st>
+        <st>53</st>
+        <st>54</st>
+        <st>55</st>
+        <st>56</st>
+        <st>57</st>
+        <st>58</st>
+        <st>59</st>
+        <st>60</st>
+        <st>61</st>
+        <st>62</st>
+        <st>63</st>
+        <st>64</st>
+        <st>65</st>
+        <st>66</st>
+        <st>67</st>
+        <st>68</st>
+        <st>69</st>
+        <st>70</st>
+        <st>71</st>
+        <st>72</st>
+        <st>73</st>
+        <st>74</st>
+        <st>75</st>
+        <st>76</st>
+        <st>77</st>
+        <st>78</st>
+        <st>79</st>
+        <st>80</st>
+        <st>81</st>
+        <st>82</st>
+        <st>83</st>
+        <st>84</st>
+        <st>85</st>
+        <st>86</st>
+        <st>87</st>
+        <st>88</st>
+        <st>89</st>
+        <st>90</st>
+        <st>91</st>
+        <st>92</st>
+        <st>93</st>
+        <st>94</st>
+        <st>95</st>
+        <st>96</st>
+        <st>97</st>
+        <st>98</st>
+        <st>99</st>
+        <st>100</st>
+        <st>101</st>
+      </gma:Request_echo_component_heartbeats>
+    </gma:ApplicationData>
+    <gma:GapsTrailer>
+      <seq>102</seq>
+      <rqr>103</rqr>
+      <oid>104</oid>
+      <mid>105</mid>
+      <crc>106</crc>
+    </gma:GapsTrailer>
+  </gma:SDHBWPDU>
+</gma:GapsPDU>
