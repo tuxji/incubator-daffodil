@@ -266,7 +266,8 @@ xmlEndComplex(XMLReader *reader, const InfosetBase *base)
     return NULL;
 }
 
-// Read 8, 16, 32, or 64-bit signed/unsigned integer number or floating point number from XML data
+// Read 8, 16, 32, or 64-bit signed/unsigned integer number or floating point
+// number from XML data
 
 static const char *
 xmlNumberElem(XMLReader *reader, const ERD *erd, void *numLocation)
@@ -291,7 +292,8 @@ xmlNumberElem(XMLReader *reader, const ERD *erd, void *numLocation)
             // Check for any errors getting the number
             const char *errstr = NULL;
 
-            // Handle varying bit lengths of both signed & unsigned integers and floating point numbers
+            // Handle varying bit lengths of both signed & unsigned integers and
+            // floating point numbers
             const enum TypeCode typeCode = erd->typeCode;
             switch (typeCode)
             {
@@ -334,7 +336,8 @@ xmlNumberElem(XMLReader *reader, const ERD *erd, void *numLocation)
                 *(double *)numLocation = strtodnum(number_from_xml, &errstr);
                 break;
             default:
-                errstr = "Unexpected ERD typeCode while reading number from XML data";
+                errstr = "Unexpected ERD typeCode while reading number from "
+                         "XML data";
                 break;
             }
 

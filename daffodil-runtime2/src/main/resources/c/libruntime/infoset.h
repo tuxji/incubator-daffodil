@@ -18,9 +18,8 @@
 #ifndef INFOSET_H
 #define INFOSET_H
 
-#include <stddef.h> // for ptrdiff_t
-#include <stdint.h> // for int32_t
-#include <stdio.h>  // for FILE, size_t
+#include <stddef.h> // for ptrdiff_t, size_t
+#include <stdio.h>  // for FILE
 
 // Prototypes needed for compilation
 
@@ -37,10 +36,8 @@ typedef struct UState             UState;
 typedef struct VisitEventHandler  VisitEventHandler;
 
 typedef void (*ERDInitSelf)(InfosetBase *infoNode);
-typedef const char *(*ERDParseSelf)(InfosetBase * infoNode,
-                                    const PState *pstate);
-typedef const char *(*ERDUnparseSelf)(const InfosetBase *infoNode,
-                                      const UState *     ustate);
+typedef void (*ERDParseSelf)(InfosetBase *infoNode, PState *pstate);
+typedef void (*ERDUnparseSelf)(const InfosetBase *infoNode, UState *ustate);
 
 typedef const char *(*VisitStartDocument)(const VisitEventHandler *handler);
 typedef const char *(*VisitEndDocument)(const VisitEventHandler *handler);
@@ -49,8 +46,7 @@ typedef const char *(*VisitStartComplex)(const VisitEventHandler *handler,
 typedef const char *(*VisitEndComplex)(const VisitEventHandler *handler,
                                        const InfosetBase *      base);
 typedef const char *(*VisitNumberElem)(const VisitEventHandler *handler,
-                                       const ERD *              erd,
-                                       const void *             numLocation);
+                                       const ERD *erd, const void *numLocation);
 
 // NamedQName - name of an infoset element
 
@@ -104,14 +100,16 @@ typedef struct InfosetBase
 
 typedef struct PState
 {
-    FILE *stream; // input to read from
+    FILE *      stream;    // input to read from
+    const char *error_msg; // to stop if an error happens
 } PState;
 
 // UState - unparser state while unparsing infoset
 
 typedef struct UState
 {
-    FILE *stream; // output to write to
+    FILE *      stream;    // output to write to
+    const char *error_msg; // to stop if an error happens
 } UState;
 
 // VisitEventHandler - methods to be called when walking an infoset

@@ -90,7 +90,8 @@ xmlEndComplex(XMLWriter *writer, const InfosetBase *base)
     return complex ? NULL : "Underflowed the XML stack";
 }
 
-// Write 8, 16, 32, or 64-bit signed/unsigned Number or floating point number as element
+// Write 8, 16, 32, or 64-bit signed/unsigned Number or floating point number as
+// element
 
 static const char *
 xmlNumberElem(XMLWriter *writer, const ERD *erd, const void *numLocation)
@@ -149,7 +150,8 @@ xmlNumberElem(XMLWriter *writer, const ERD *erd, const void *numLocation)
         break;
     }
 
-    return (simple && text) ? NULL : "Error making new simple numerical element";
+    return (simple && text) ? NULL
+                            : "Error making new simple numerical element";
 }
 
 // Initialize a struct with our visitor event handler methods

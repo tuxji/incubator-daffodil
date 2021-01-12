@@ -34,47 +34,14 @@ trait BinaryFloatCodeGenerator {
 
     // Use a signaling NAN to mark our field as uninitialized in case parsing
     // or unparsing fails to set the field.
-    val nan = if (lengthInBits == 32) "SNANF" else "SNAN"
-    val float = if (lengthInBits == 32) "float " else "double"
-    val integer = if (lengthInBits == 32) "uint32_t" else "uint64_t"
-    val conv = if (byteOrder eq ByteOrder.BigEndian) "be" else "le"
     val fieldName = e.namedQName.local
+    val nan = if (lengthInBits == 32) "SNANF" else "SNAN"
+    val float = if (lengthInBits == 32) "float" else "double"
+    val conv = if (byteOrder eq ByteOrder.BigEndian) "be" else "le"
 
     val initStatement = s"    instance->$fieldName = $nan;"
-    val parseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        union
-         |        {
-         |            char     c_val[sizeof($float)];
-         |            $float   f_val;
-         |            $integer i_val;
-         |        } buffer;
-         |        size_t count = fread(&buffer.c_val, 1, sizeof(buffer), pstate->stream);
-         |        if (count < sizeof(buffer))
-         |        {
-         |            error_msg = eof_or_error_msg(pstate->stream);
-         |        }
-         |        buffer.i_val = ${conv}${lengthInBits}toh(buffer.i_val);
-         |        instance->$fieldName = buffer.f_val;
-         |    }""".stripMargin
-    val unparseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        union
-         |        {
-         |            char     c_val[sizeof($float)];
-         |            $float   f_val;
-         |            $integer i_val;
-         |        } buffer;
-         |        buffer.f_val = instance->$fieldName;
-         |        buffer.i_val = hto${conv}${lengthInBits}(buffer.i_val);
-         |        size_t count = fwrite(buffer.c_val, 1, sizeof(buffer), ustate->stream);
-         |        if (count < sizeof(buffer))
-         |        {
-         |            error_msg = eof_or_error_msg(ustate->stream);
-         |        }
-         |    }""".stripMargin
+    val parseStatement = s"    parse_${conv}_$float(&instance->$fieldName, pstate);"
+    val unparseStatement = s"    unparse_${conv}_$float(instance->$fieldName, ustate);"
     cgState.addSimpleTypeStatements(initStatement, parseStatement, unparseStatement)
   }
 }

@@ -49,40 +49,12 @@ trait BinaryIntegerKnownLengthCodeGenerator {
       case _ => e.SDE("Lengths other than 8, 16, 32, or 64 bits are not supported.")
     }
     val fieldName = e.namedQName.local
-    val integer = if (lengthInBits == 8) "uint8_t " else s"uint${lengthInBits}_t"
+    val integer = if (g.signed) s"int${lengthInBits}" else s"uint${lengthInBits}"
     val conv = if (byteOrder eq ByteOrder.BigEndian) "be" else "le"
 
     val initStatement = s"    instance->$fieldName = $initialValue;"
-    val parseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        union
-         |        {
-         |            char     c_val[sizeof($integer)];
-         |            $integer i_val;
-         |        } buffer;
-         |        size_t count = fread(&buffer.c_val, 1, sizeof(buffer), pstate->stream);
-         |        if (count < sizeof(buffer))
-         |        {
-         |            error_msg = eof_or_error_msg(pstate->stream);
-         |        }
-         |        instance->$fieldName = ${conv}${lengthInBits}toh(buffer.i_val);
-         |    }""".stripMargin
-    val unparseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        union
-         |        {
-         |            char     c_val[sizeof($integer)];
-         |            $integer i_val;
-         |        } buffer;
-         |        buffer.i_val = hto${conv}${lengthInBits}(instance->$fieldName);
-         |        size_t count = fwrite(buffer.c_val, 1, sizeof(buffer), ustate->stream);
-         |        if (count < sizeof(buffer))
-         |        {
-         |            error_msg = eof_or_error_msg(ustate->stream);
-         |        }
-         |    }""".stripMargin
+    val parseStatement = s"    parse_${conv}_$integer(&instance->$fieldName, pstate);"
+    val unparseStatement = s"    unparse_${conv}_$integer(instance->$fieldName, ustate);"
     cgState.addSimpleTypeStatements(initStatement, parseStatement, unparseStatement)
   }
 }

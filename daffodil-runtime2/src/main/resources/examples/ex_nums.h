@@ -23,9 +23,11 @@
 
 // Define some infoset structures
 
-typedef struct ex_ints
+typedef struct ex_nums
 {
     InfosetBase _base;
+    double      be_double;
+    float       be_float;
     uint64_t    be_uint64;
     uint32_t    be_uint32;
     uint16_t    be_uint16;
@@ -42,6 +44,8 @@ typedef struct ex_ints
     int32_t     le_int32;
     int16_t     le_int16;
     int8_t      le_int8;
-} ex_ints;
+    float       le_float;
+    double      le_double;
+} ex_nums;
 
 #endif // GENERATED_CODE_H

@@ -62,9 +62,9 @@ class CodeGeneratorState {
     val parserStatements = structs.top.parserStatements.mkString("\n")
     val unparserStatements = structs.top.unparserStatements.mkString("\n")
     val prototypeFunctions =
-      s"""static void        ${C}_initSelf($C *instance);
-         |static const char *${C}_parseSelf($C *instance, const PState *pstate);
-         |static const char *${C}_unparseSelf(const $C *instance, const UState *ustate);""".stripMargin
+      s"""static void ${C}_initSelf($C *instance);
+         |static void ${C}_parseSelf($C *instance, PState *pstate);
+         |static void ${C}_unparseSelf(const $C *instance, UState *ustate);""".stripMargin
     prototypes += prototypeFunctions
     val functions =
       s"""static void
@@ -73,20 +73,16 @@ class CodeGeneratorState {
          |$initStatements
          |}
          |
-         |static const char *
-         |${C}_parseSelf($C *instance, const PState *pstate)
+         |static void
+         |${C}_parseSelf($C *instance, PState *pstate)
          |{
-         |    const char *error_msg = NULL;
          |$parserStatements
-         |    return error_msg;
          |}
          |
-         |static const char *
-         |${C}_unparseSelf(const $C *instance, const UState *ustate)
+         |static void
+         |${C}_unparseSelf(const $C *instance, UState *ustate)
          |{
-         |    const char *error_msg = NULL;
          |$unparserStatements
-         |    return error_msg;
          |}
          |""".stripMargin
     finalImplementation += functions
@@ -116,7 +112,7 @@ class CodeGeneratorState {
     val erdComputations = structs.top.erdComputations.mkString(",\n")
     val qnameInit = defineQNameInit(context)
     val complexERD =
-      s"""static const $C ${C}_compute_ERD_offsets;
+      s"""static const $C ${C}_compute_offsets;
          |
          |static const ptrdiff_t ${C}_offsets[$count] = {
          |$offsetComputations
@@ -166,16 +162,8 @@ class CodeGeneratorState {
     val C = localName(child)
     val e = child.name
     val initStatement = s"    ${C}_initSelf(&instance->$e);"
-    val parseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        error_msg = ${C}_parseSelf(&instance->$e, pstate);
-         |    }""".stripMargin
-    val unparseStatement =
-      s"""    if (!error_msg)
-         |    {
-         |        error_msg = ${C}_unparseSelf(&instance->$e, ustate);
-         |    }""".stripMargin
+    val parseStatement = s"    ${C}_parseSelf(&instance->$e, pstate);"
+    val unparseStatement = s"    ${C}_unparseSelf(&instance->$e, ustate);"
     structs.top.initStatements += initStatement
     structs.top.parserStatements += parseStatement
     structs.top.unparserStatements += unparseStatement
@@ -226,7 +214,7 @@ class CodeGeneratorState {
     val C = structs.top.C
     val e = localName(child)
     val qn = qualifiedName(child)
-    val offsetComputation = s"    (char *)&${C}_compute_ERD_offsets.$e - (char *)&${C}_compute_ERD_offsets"
+    val offsetComputation = s"    (char *)&${C}_compute_offsets.$e - (char *)&${C}_compute_offsets"
     val erdComputation = s"    &${qn}_ERD"
     structs.top.offsetComputations += offsetComputation
     structs.top.erdComputations += erdComputation
@@ -278,10 +266,10 @@ class CodeGeneratorState {
     val code =
       s"""#define __STDC_WANT_IEC_60559_BFP_EXT__
          |#include "generated_code.h" // for generated code structs
-         |#include <endian.h>         // for be32toh, htobe32, etc.
+         |#include "parsers.h"        // for parse_be_double, parse_be_float, ...
+         |#include "unparsers.h"      // for unparse_be_double, unparse_be_float, ...
          |#include <math.h>           // for SNAN, SNANF
-         |#include <stddef.h>         // for ptrdiff_t
-         |#include <stdio.h>          // for NULL, fread, fwrite, size_t, FILE
+         |#include <stddef.h>         // for NULL, ptrdiff_t
          |
          |// Prototypes needed for compilation
          |
@@ -300,14 +288,6 @@ class CodeGeneratorState {
          |    ${rootElementName}__ERD.initSelf(root);
          |    return root;
          |}
-         |
-         |// Degenerate cases of endian-conversion functions called by code
-         |// generator since <endian.h> handles only 16, 32, and 64-bit cases
-         |
-         |static inline uint8_t htobe8(uint8_t h8b) { return h8b; }
-         |static inline uint8_t htole8(uint8_t h8b) { return h8b; }
-         |static inline uint8_t be8toh(uint8_t be8b) { return be8b; }
-         |static inline uint8_t le8toh(uint8_t le8b) { return le8b; }
          |
          |// Methods to initialize, parse, and unparse infoset nodes
          |
